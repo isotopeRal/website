@@ -17,7 +17,7 @@
 }
 
  .u-section-1-1 {
-  background-image: linear-gradient(0deg, rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("images/Enlight1-4-21.jpeg");
+  background-image: linear-gradient(0deg, rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("images/SantaGracia.png");
   background-position: 50% 50%;
 }
 
@@ -39,6 +39,18 @@
   .u-section-1-1 .u-sheet-1 {
     min-height: 660px;
   }
+
+  .u-section-1-1 .u-text-1 {
+    width: auto;
+    margin-top: 235px;
+  }
+
+  .u-section-1-1 .u-text-2 {
+    width: auto;
+    margin-top: 0;
+    margin-left: 52px;
+    margin-right: 52px;
+  }
 }
 
 @media (max-width: 991px) {
@@ -51,7 +63,6 @@
   }
 
   .u-section-1-1 .u-text-2 {
-    width: auto;
     margin-left: 29px;
     margin-right: 29px;
   }
@@ -75,22 +86,25 @@
 
 @media (max-width: 575px) {
   .u-section-1-1 .u-sheet-1 {
-    min-height: 350px;
+    min-height: 455px;
   }
 
   .u-section-1-1 .u-text-1 {
     font-size: 2.75rem;
-    margin-left: 23px;
+    margin-top: 110px;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .u-section-1-1 .u-text-2 {
+    margin-top: 22px;
     margin-left: 23px;
     margin-right: 23px;
   }
 }
 
  .u-section-1-2 {
-  background-image: linear-gradient(0deg, rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("images/Bodenproben.png");
+  background-image: linear-gradient(0deg, rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("images/DerGeochemiker.png");
   background-position: 50% 50%;
 }
 
@@ -99,6 +113,7 @@
 }
 
 .u-section-1-2 .u-text-1 {
+  font-size: 4.5rem;
   margin: 330px auto 0 0;
 }
 
@@ -112,12 +127,14 @@
   }
 
   .u-section-1-2 .u-text-1 {
-    font-size: 4.5rem;
+    width: auto;
+    margin-top: 226px;
   }
 
   .u-section-1-2 .u-text-2 {
-    width: 837px;
-    margin-right: 47px;
+    width: auto;
+    margin-top: 20px;
+    margin-right: 103px;
   }
 }
 
@@ -131,7 +148,6 @@
   }
 
   .u-section-1-2 .u-text-2 {
-    width: auto;
     margin-left: 29px;
     margin-right: 29px;
   }
@@ -155,22 +171,24 @@
 
 @media (max-width: 575px) {
   .u-section-1-2 .u-sheet-1 {
-    min-height: 350px;
+    min-height: 455px;
   }
 
   .u-section-1-2 .u-text-1 {
     font-size: 2.75rem;
-    margin-left: 23px;
+    margin-top: 145px;
+    margin-left: 0;
   }
 
   .u-section-1-2 .u-text-2 {
-    margin-left: 23px;
-    margin-right: 23px;
+    margin-top: 25px;
+    margin-right: 46px;
+    margin-left: 0;
   }
 }
 
  .u-section-1-3 {
-  background-image: linear-gradient(0deg, rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("images/P7100031.png");
+  background-image: linear-gradient(0deg, rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("images/DerHydrogeologe.png");
   background-position: 50% 50%;
 }
 
@@ -191,7 +209,14 @@
     min-height: 660px;
   }
 
+  .u-section-1-3 .u-text-1 {
+    width: auto;
+    margin-top: 226px;
+  }
+
   .u-section-1-3 .u-text-2 {
+    width: auto;
+    margin-top: 25px;
     margin-right: 235px;
   }
 }
@@ -218,7 +243,16 @@
 
 @media (max-width: 575px) {
   .u-section-1-3 .u-sheet-1 {
-    min-height: 239px;
+    min-height: 456px;
+  }
+
+  .u-section-1-3 .u-text-1 {
+    margin-top: 45px;
+    margin-right: 0;
+  }
+
+  .u-section-1-3 .u-text-2 {
+    margin-bottom: 0;
   }
 }
 
@@ -244,7 +278,14 @@
     min-height: 660px;
   }
 
+  .u-section-1-4 .u-text-1 {
+    width: auto;
+    margin-top: 226px;
+  }
+
   .u-section-1-4 .u-text-2 {
+    width: auto;
+    margin-top: 25px;
     margin-right: 392px;
   }
 }
@@ -271,6 +312,10 @@
 
 @media (max-width: 575px) {
   .u-section-1-4 .u-sheet-1 {
-    min-height: 239px;
+    min-height: 456px;
+  }
+
+  .u-section-1-4 .u-text-1 {
+    margin-top: 140px;
   }
 }
