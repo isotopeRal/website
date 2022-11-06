@@ -443,8 +443,9 @@
 }
 
 .u-section-2 .u-layout-wrap-1 {
+  margin-top: 0;
+  margin-bottom: 0;
   width: 100%;
-  margin: 0;
 }
 
 .u-section-2 .u-image-1 {
