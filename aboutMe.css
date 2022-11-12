@@ -1914,9 +1914,9 @@
 
 .u-section-4 .u-tab-link-3 {
   background-image: none;
-  font-size: 1rem;
+  font-size: 1.25rem;
   letter-spacing: normal;
-  font-weight: normal;
+  font-weight: 700;
 }
 
 .u-section-4 .u-tab-pane-1 {
@@ -2344,9 +2344,7 @@
   }
 
   .u-section-4 .u-tab-link-3 {
-    font-size: 1.25rem;
     letter-spacing: 0px;
-    font-weight: 700;
     padding: 10px 25px;
   }
 
