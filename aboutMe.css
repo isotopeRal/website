@@ -3136,5 +3136,7 @@
 @media (max-width: 575px) {
   .u-section-5 .u-gallery-1 {
     width: 340px;
+    margin-top: -1px;
+    margin-left: -39px;
   }
 }
