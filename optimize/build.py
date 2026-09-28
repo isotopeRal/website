@@ -7,9 +7,12 @@ Aufruf:  python3 build.py <quellordner> <zielordner>
 Schritte:
   1. Kopiert die Website (ohne .git, .github, .DS_Store, Build-Ordner)
   2. Bilder: verkleinert (max. 1920 px) und in WebP umgewandelt, Verweise angepasst
-  3. nicepage.css: entfernt alle Regeln, deren Klassen auf keiner Seite vorkommen
-  4. Alle CSS-Dateien werden minifiziert
-  5. HTML: Lazy Loading für Bilder, Preconnect für Google Fonts,
+  3. Nicepage-Hinweise: entfernt die Fußzeile „created with …“, das Generator-Tag
+     und Links auf nicepage.com (Logo-Links zeigen danach auf die Startseite).
+     Nur mit gekaufter Nicepage-Lizenz zulässig.
+  4. nicepage.css: entfernt alle Regeln, deren Klassen auf keiner Seite vorkommen
+  5. Alle CSS-Dateien werden minifiziert
+  6. HTML: Lazy Loading für Bilder, Preconnect für Google Fonts,
      nicht blockierendes Laden der Schriften
 
 Benötigt nur Python 3 und Pillow (pip install pillow).
@@ -302,7 +305,56 @@ def optimize_css(site: Path) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# 3. HTML
+# 3. Nicepage-Hinweise entfernen (nur mit gekaufter Nicepage-Lizenz zulässig)
+# --------------------------------------------------------------------------- #
+BACKLINK_RE = re.compile(
+    r'\s*<section\b[^>]*class="[^"]*\bu-backlink\b[^"]*"[^>]*>.*?</section>', re.S | re.I
+)
+GENERATOR_RE = re.compile(r'\s*<meta\s+name="generator"\s+content="[^"]*nicepage[^"]*"\s*/?>', re.I)
+NP_LINK_RE = re.compile(
+    r'<a\b([^>]*?)\shref="https?://(?:www\.)?nicepage\.com[^"]*"([^>]*)>(.*?)</a>', re.S | re.I
+)
+
+
+def remove_branding(site: Path) -> None:
+    report = []
+    for f in sorted(text_files(site, ".html")):
+        s = f.read_text(encoding="utf-8")
+        found = []
+
+        s, n = BACKLINK_RE.subn("", s)
+        if n:
+            found.append("Fußzeile „created with“")
+
+        s, n = GENERATOR_RE.subn("", s)
+        if n:
+            found.append("Generator-Tag")
+
+        home = Path(os.path.relpath(site, f.parent)).as_posix() + "/"
+
+        def fix_link(m):
+            if "<img" in m.group(3).lower():          # z. B. Logo: auf Startseite zeigen lassen
+                before, after = (re.sub(r'\s*target="_blank"', "", a) for a in m.groups()[:2])
+                return f'<a{before} href="{home}"{after}>{m.group(3)}</a>'
+            return ""                                  # reiner Textlink: entfernen
+
+        s, n = NP_LINK_RE.subn(fix_link, s)
+        if n:
+            found.append(f"{n} Link(s) auf nicepage.com")
+
+        if found:
+            f.write_text(s, encoding="utf-8")
+            report.append(f"  {f.relative_to(site)}: " + ", ".join(found))
+
+    if report:
+        print("Nicepage-Hinweise entfernt:")
+        print("\n".join(report))
+    else:
+        print("Nicepage-Hinweise: keine gefunden")
+
+
+# --------------------------------------------------------------------------- #
+# 4. HTML
 # --------------------------------------------------------------------------- #
 FONT_LINK_RE = re.compile(r'<link id="u-(?:theme|page)-google-font" rel="stylesheet" href="([^"]+)">')
 IMG_RE = re.compile(r"<img\b([^>]*)>", re.I)
@@ -366,6 +418,7 @@ def main():
     copy_site(src, dst)
     start = dir_size(dst)
     rewrite_image_refs(dst, optimize_images(dst))
+    remove_branding(dst)
     optimize_css(dst)
     optimize_html(dst)
     (dst / ".nojekyll").touch()
