@@ -7,10 +7,12 @@ Aufruf:  python3 build.py <quellordner> <zielordner>
 Schritte:
   1. Kopiert die Website (ohne .git, .github, .DS_Store, Build-Ordner)
   2. Bilder: verkleinert (max. 1920 px) und in WebP umgewandelt, Verweise angepasst
+     (in HTML, CSS und den JSON-Dateien des Nicepage-Blogs, z. B. blog/blog.json)
   3. Nicepage-Hinweise: entfernt die Fußzeile „created with …“, das Generator-Tag
      und Links auf nicepage.com (Logo-Links zeigen danach auf die Startseite).
      Nur mit gekaufter Nicepage-Lizenz zulässig.
   4. nicepage.css: entfernt alle Regeln, deren Klassen auf keiner Seite vorkommen
+     (Klassen aus HTML, JS und JSON werden berücksichtigt)
   5. Alle CSS-Dateien werden minifiziert
   6. HTML: Lazy Loading für Bilder, Preconnect für Google Fonts,
      nicht blockierendes Laden der Schriften
@@ -30,6 +32,7 @@ MAX_SIDE = 1920          # längste Bildkante in Pixel
 WEBP_QUALITY = 80
 RASTER_EXT = {".png", ".jpg", ".jpeg", ".gif"}
 SKIP_NAMES = {".git", ".github", ".DS_Store", "_site", "optimize", "node_modules"}
+DOWNLOAD_DIR = "files"   # Ordner mit Downloads: Inhalte bleiben unangetastet
 
 # Klassen, die nicepage.js erst zur Laufzeit setzt oder aus Teilstrings zusammenbaut.
 # Regeln mit diesen Klassen bleiben immer erhalten.
@@ -63,6 +66,18 @@ def text_files(root: Path, *exts):
             yield p
 
 
+def in_downloads(site: Path, p: Path) -> bool:
+    """True, wenn die Datei im Download-Ordner liegt."""
+    return DOWNLOAD_DIR in p.relative_to(site).parts
+
+
+def site_json_files(site: Path):
+    """JSON-Dateien der Website (z. B. blog/blog.json), ohne Downloads."""
+    for p in text_files(site, ".json"):
+        if not in_downloads(site, p):
+            yield p
+
+
 def fmt(n: int) -> str:
     return f"{n / 1e6:.1f} MB" if n >= 1e6 else f"{n / 1e3:.0f} KB"
 
@@ -75,17 +90,28 @@ def is_animated(im: Image.Image) -> bool:
 
 
 def optimize_images(site: Path) -> dict:
-    """Wandelt Rasterbilder in WebP um. Gibt {alter_name: neuer_name} zurück."""
-    renames, before, after = {}, 0, 0
+    """Wandelt Rasterbilder in WebP um. Gibt {alter_name: neuer_name} zurück.
+
+    Die Verweise werden später nur über den Dateinamen umgeschrieben. Deshalb
+    läuft die Umwandlung in zwei Phasen: erst alle Bilder umwandeln, dann pro
+    Dateiname prüfen, ob das Ergebnis in allen Ordnern gleich ist. Nur dann
+    werden die Originale gelöscht. Bei abweichenden Ergebnissen (gleicher Name
+    in mehreren Ordnern, aber nicht überall umgewandelt) bleiben alle Originale
+    dieses Namens erhalten, damit kein Verweis ins Leere zeigt.
+    """
+    # Phase 1: umwandeln, Originale noch nicht löschen
+    results = []                                  # (original, webp | None, alt, neu)
     for p in list(site.rglob("*")):
         if not p.is_file() or p.suffix.lower() not in RASTER_EXT:
             continue
-        if "files" in p.relative_to(site).parts:      # Downloads unangetastet lassen
+        if in_downloads(site, p):                 # Downloads unangetastet lassen
             continue
         size_in = p.stat().st_size
+        out = None
         try:
             im = Image.open(p)
             if is_animated(im):
+                results.append((p, None, size_in, 0))
                 continue
             im = ImageOps.exif_transpose(im)
             im.thumbnail((MAX_SIDE, MAX_SIDE), Image.LANCZOS)
@@ -99,16 +125,37 @@ def optimize_images(site: Path) -> dict:
             im.save(out, "WEBP", quality=WEBP_QUALITY, method=6)
         except Exception as e:  # defekte Datei o. ä.: Original behalten
             print(f"  ! {p.name}: {e}")
+            results.append((p, None, size_in, 0))
             continue
         size_out = out.stat().st_size
         if size_out >= size_in:          # WebP bringt nichts -> Original behalten
+            out.unlink()
+            results.append((p, None, size_in, 0))
+            continue
+        results.append((p, out, size_in, size_out))
+
+    # Phase 2: pro Dateiname prüfen, ob das Ergebnis überall gleich ist
+    outcomes = {}
+    for p, out, _, _ in results:
+        outcomes.setdefault(p.name, set()).add(out.name if out else None)
+    conflicts = {name for name, outs in outcomes.items() if len(outs) > 1}
+
+    renames, before, after = {}, 0, 0
+    for p, out, size_in, size_out in results:
+        if out is None:
+            continue
+        if p.name in conflicts:          # Original behalten, WebP verwerfen
             out.unlink()
             continue
         p.unlink()
         renames[p.name] = out.name
         before += size_in
         after += size_out
-    print(f"Bilder: {len(renames)} umgewandelt, {fmt(before)} -> {fmt(after)}")
+
+    print(f"Bilder: {len(renames)} Dateinamen umgewandelt, {fmt(before)} -> {fmt(after)}")
+    if conflicts:
+        print("  Nicht umgewandelt (gleicher Dateiname in mehreren Ordnern mit "
+              "unterschiedlichem Ergebnis): " + ", ".join(sorted(conflicts)))
     return renames
 
 
@@ -117,7 +164,9 @@ def rewrite_image_refs(site: Path, renames: dict) -> None:
         return
     names = sorted(renames, key=len, reverse=True)
     pattern = re.compile(r"(?<![\w.-])(" + "|".join(re.escape(n) for n in names) + r")(?![\w.-])")
-    for f in text_files(site, ".html", ".css"):
+    # HTML und CSS überall, JSON nur außerhalb des Download-Ordners
+    targets = list(text_files(site, ".html", ".css")) + list(site_json_files(site))
+    for f in targets:
         s = f.read_text(encoding="utf-8")
         new = pattern.sub(lambda m: renames[m.group(1)], s)
         if new != s:
@@ -282,8 +331,15 @@ def serialize(items) -> str:
 
 
 def collect_used_tokens(site: Path) -> set:
+    """Sammelt alle Wörter, die als CSS-Klasse in Frage kommen.
+
+    Neben HTML und JS werden auch die JSON-Dateien der Website gelesen: Das
+    Blog-Posts-Element lädt Beiträge aus blog/blog.json nach, und Klassen, die
+    nur dort vorkommen, dürfen nicht aus nicepage.css entfernt werden.
+    """
     used = set()
-    for f in text_files(site, ".html", ".js"):
+    sources = list(text_files(site, ".html", ".js")) + list(site_json_files(site))
+    for f in sources:
         s = f.read_text(encoding="utf-8", errors="ignore")
         used.update(re.findall(r"[A-Za-z_][\w-]*", s))
     return used
