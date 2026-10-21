@@ -547,7 +547,6 @@ function renderDetail(o){
   const place=[o.g, o.gm && o.gm!==o.g ? 'Gemarkung '+o.gm : null, o.k ? 'Kreis '+o.k : null].filter(Boolean).join(' · ');
   let notice='';
   if(o.pos==='tk') notice=`<div class="notice">Für dieses Geotop sind keine Koordinaten hinterlegt. Der Punkt liegt in der Mitte von TK25-Blatt ${o.tk}; die tatsächliche Lage steht in der Lagebeschreibung.</div>`;
-  else if(o.pos==='attr') notice=`<div class="notice">Die Punktgeometrie im Shapefile war leer. Die Lage stammt aus den Attributen Rechts-/Hochwert${o.R>=5e6?' (Gauß-Krüger Zone 5)':''}.</div>`;
   if(o.pos==='est' && o.fix) notice=`<div class="notice">Nicht in deinem Shapefile enthalten. Ergänzt nach dem offiziellen LfULG-Steckbrief, Koordinaten nachgetragen.</div>`;
   else if(o.pos==='est') notice=`<div class="notice">Nicht in deinem Shapefile enthalten. Ergänzt nach dem offiziellen LfULG-Steckbrief. Der Steckbrief nennt keine Koordinaten, deshalb ist der Punkt aus Orientierungspunkten abgeleitet (${esc(o.src)}), Genauigkeit etwa ±${fmtInt(o.r)} m.</div>`;
   if(o.del) notice+=`<div class="notice">Im Kataster zur Löschung vorgemerkt.</div>`;
