@@ -36,6 +36,24 @@
   --r1:#e7809a; --r2:#71aee6; --r3:#e8b257; --r4:#a2cf68; --r5:#bb95e0; --r6:#de9468; --r7:#5fcfc8; --r8:#8f978f;
   color-scheme:dark}
 
+/* Eigener Standort */
+:root{--me:#1667d9; --me-fill:rgba(22,103,217,.12)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--me:#5ea4ff; --me-fill:rgba(94,164,255,.14)}}
+:root[data-theme="dark"]{--me:#5ea4ff; --me-fill:rgba(94,164,255,.14)}
+.leaflet-bar a.locbtn{display:flex;align-items:center;justify-content:center}
+.leaflet-bar a.locbtn svg{width:18px;height:18px}
+.leaflet-bar a.locbtn.on{color:var(--me)}
+.leaflet-bar a.locbtn.wait svg{animation:spin 1.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.leaflet-bar a.locbtn.wait svg{animation:none}}
+.nearrow{display:flex;align-items:center;gap:8px;font-size:14px}
+.nearrow label{color:var(--fg);white-space:nowrap}
+.nearrow select{width:auto;flex:1}
+.locmsg{padding-block:8px;font-size:13px;line-height:1.4;color:var(--fg);background:var(--warn-soft);border-bottom:1px solid var(--line)}
+.locmsg.ok{background:var(--accent-soft)}
+.dist{font:500 12px var(--f-mono);color:var(--me);padding-top:3px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.distline{font-size:14px;color:var(--me);margin:4px 0 0;font-weight:600}
+
 /* ---------- Leaflet-Grundstile (inline, da externe Stylesheets blockiert sind) ---------- */
 .leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-zoom-box,.leaflet-image-layer,.leaflet-layer{position:absolute;left:0;top:0}
 .leaflet-container{overflow:hidden;-webkit-tap-highlight-color:transparent;outline-offset:1px}
@@ -234,6 +252,17 @@ dl.kv dd{margin:0;min-width:0;overflow-wrap:anywhere;white-space:pre-line}
           <div><label class="lbl" for="fStrat">Stratigraphie</label><select id="fStrat"></select></div>
           <div><label class="lbl" for="fSchutz">Schutzstatus</label><select id="fSchutz"></select></div>
         </div>
+        <div class="nearrow" id="nearRow" hidden>
+          <label for="fRad">Umkreis um dich</label>
+          <select id="fRad">
+            <option value="0">ganz Sachsen</option>
+            <option value="2">2 km</option>
+            <option value="5">5 km</option>
+            <option value="10">10 km</option>
+            <option value="25" selected>25 km</option>
+            <option value="50">50 km</option>
+          </select>
+        </div>
         <div class="toggles">
           <label><input type="checkbox" id="fUrl"> Nur mit offiziellem LfULG-Steckbrief <span class="hint" id="nUrl"></span></label>
           <label><input type="checkbox" id="fView"> Liste auf Kartenausschnitt begrenzen</label>
@@ -245,6 +274,7 @@ dl.kv dd{margin:0;min-width:0;overflow-wrap:anywhere;white-space:pre-line}
         <span class="count" id="count"></span>
         <button class="btn" id="reset" type="button">Filter zurücksetzen</button>
       </div>
+      <div class="locmsg pad" id="locmsg" role="status" hidden></div>
       <ol class="list" id="list"></ol>
     </div>
     <section class="detail" id="detail" hidden aria-live="polite">
@@ -301,8 +331,25 @@ for (const o of D){
 const state = {
   q:'', types:new Set(TYPES.map(t=>t.k)), reg:'', nat:'', strat:'', schutz:'', url:false,
   view:false, approx:true, del:false, colorBy: store.get('geotope.colorBy') || 'type',
-  base: store.get('geotope.base') || 'topo', grid: true, sel:null, shown:150
+  base: store.get('geotope.base') || 'topo', grid: true, sel:null, shown:150,
+  near:null, rad:25
 };
+
+// ---------- Entfernungen ----------
+// Luftlinie nach Haversine (Kugel mit mittlerem Erdradius) – auf wenige Meter genau, mehr braucht es hier nicht
+function distKm(a,b){
+  const R=6371.0088, r=Math.PI/180;
+  const dLa=(b.lat-a.lat)*r, dLo=(b.lon-a.lon)*r;
+  const h=Math.sin(dLa/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+function bearingWord(a,b){
+  const r=Math.PI/180, y=Math.sin((b.lon-a.lon)*r)*Math.cos(b.lat*r);
+  const x=Math.cos(a.lat*r)*Math.sin(b.lat*r)-Math.sin(a.lat*r)*Math.cos(b.lat*r)*Math.cos((b.lon-a.lon)*r);
+  const deg=(Math.atan2(y,x)/r+360)%360;
+  return ['nördlich','nordöstlich','östlich','südöstlich','südlich','südwestlich','westlich','nordwestlich'][Math.round(deg/45)%8];
+}
+const fmtKm = d => d<1 ? Math.round(d*1000/10)*10+' m' : (d<10 ? d.toFixed(1).replace('.',',') : Math.round(d))+' km';
 
 // ---------- Filter-UI aufbauen ----------
 function countBy(arr, f){ const m=new Map(); for(const o of arr){const k=f(o); if(k==null) continue; m.set(k,(m.get(k)||0)+1);} return m; }
@@ -343,6 +390,7 @@ function matches(o, skipType){
   if (state.strat && o.st!==state.strat) return false;
   if (state.schutz){ if(state.schutz==='__prot'){ if(!PROTECTED.has(o.sc)) return false; } else if(schutzKey(o)!==state.schutz) return false; }
   if (state.q){ for (const w of state.q.split(/\s+/)) if (w && !o._s.includes(w)) return false; }
+  if (state.near && state.rad && o._d > state.rad) return false;
   return true;
 }
 
@@ -464,10 +512,10 @@ function update(){
   // Liste
   let L_=visible;
   if(state.view){ const bb=map.getBounds(); L_=visible.filter(o=>bb.contains([o.lat,o.lon])); }
-  current=L_.slice().sort((a,b)=>a.nm.localeCompare(b.nm,'de'));
+  current=L_.slice().sort(state.near ? (a,b)=>a._d-b._d : (a,b)=>a.nm.localeCompare(b.nm,'de'));
   state.shown=150; renderList();
-  const total = D.filter(o=>(state.del||!o.del)).length;
-  $('#count').innerHTML = `<b>${fmtInt(current.length)}</b> ${state.view?'im Ausschnitt · ':''}${state.view?fmtInt(visible.length)+' gefiltert · ':''}von ${fmtInt(D.length)}`;
+  const near = state.near ? (state.rad ? `im Umkreis von ${state.rad} km · ` : 'nach Entfernung · ') : '';
+  $('#count').innerHTML = `<b>${fmtInt(current.length)}</b> ${near}${state.view?'im Ausschnitt · ':''}${state.view?fmtInt(visible.length)+' gefiltert · ':''}von ${fmtInt(D.length)}`;
   renderLegend(visible);
   $('#qclear').hidden=!state.q;
 }
@@ -478,7 +526,7 @@ function renderList(){
   el.innerHTML = part.map(o=>{
     const cv = state.colorBy==='region'?regionVar(o.gr):typeVar(o.t);
     const sub=[o.g, o.t1 && !/^\?+$/.test(o.t1) ? o.t1 : o.t].filter(Boolean).join(' · ');
-    return `<li class="item" tabindex="0" data-id="${o.id}" ${o.id===state.sel?'aria-current="true"':''} style="--c:var(${cv})"><span class="dot${o.pos==='tk'||(o.pos==='est'&&!o.fix)?' approx':''}"></span><div><div class="t">${esc(o.nm)}${o.url?'<span class="tag" title="Offizieller Steckbrief auf geologie.sachsen.de">LfULG</span>':''}</div><div class="s">${esc(sub)}</div></div><span class="nr">${o.pos==='est'?'neu':o.id}</span></li>`;
+    return `<li class="item" tabindex="0" data-id="${o.id}" ${o.id===state.sel?'aria-current="true"':''} style="--c:var(${cv})"><span class="dot${o.pos==='tk'||(o.pos==='est'&&!o.fix)?' approx':''}"></span><div><div class="t">${esc(o.nm)}${o.url?'<span class="tag" title="Offizieller Steckbrief auf geologie.sachsen.de">LfULG</span>':''}</div><div class="s">${esc(sub)}</div></div>${state.near?`<span class="dist">${fmtKm(o._d)}</span>`:`<span class="nr">${o.pos==='est'?'neu':o.id}</span>`}</li>`;
   }).join('') + (current.length>state.shown ? `<li><button class="btn more" id="more" type="button">Weitere ${fmtInt(Math.min(150,current.length-state.shown))} anzeigen</button></li>` : '');
 }
 $('#list').addEventListener('click',e=>{
@@ -514,6 +562,7 @@ function renderDetail(o){
     <h2>${esc(o.nm)}</h2>
     ${o.an?`<p class="alt">auch: ${esc(o.an)}</p>`:''}
     <p class="place">${esc(place)}</p>
+    ${state.near?`<p class="distline">${fmtKm(o._d)} Luftlinie ${bearingWord(state.near,o)} von dir</p>`:''}
     ${o.url?`<a class="official" href="${esc(o.url)}" target="_blank" rel="noopener"><div><b>Offizieller Steckbrief beim LfULG</b><span>geologie.sachsen.de · Fotos, Erläuterung und Anfahrt</span></div><i>↗</i></a>`:''}
     ${notice}
     ${sec('Geologie', prose(o.kb) + kv([['Gesteine',o.ge],['Stratigraphie',strat.join('\n')||null],['Geol. Region',o.gr],['Besonderheiten',o.bs]]))}
@@ -599,10 +648,71 @@ $('#nUrl').textContent='('+D.filter(o=>o.url).length+')';
 $('#fApprox').addEventListener('change',e=>{state.approx=e.target.checked;update();});
 $('#fDel').addEventListener('change',e=>{state.del=e.target.checked;update();});
 $('#reset').addEventListener('click',()=>{
-  Object.assign(state,{q:'',types:new Set(TYPES.map(t=>t.k)),reg:'',nat:'',strat:'',schutz:'',url:false,view:false,approx:true,del:false}); $('#fUrl').checked=false;
+  Object.assign(state,{q:'',types:new Set(TYPES.map(t=>t.k)),reg:'',nat:'',strat:'',schutz:'',url:false,view:false,approx:true,del:false,rad:0}); $('#fUrl').checked=false; $('#fRad').value='0';
   $('#q').value=''; for(const id of ['#fReg','#fNat','#fStrat','#fSchutz']) $(id).value='';
   $('#fView').checked=false; $('#fApprox').checked=true; $('#fDel').checked=false; update();
 });
+$('#fRad').addEventListener('change',e=>{ state.rad=+e.target.value; update(); fitNear(); });
+
+// ---------- Eigener Standort (Geolocation-API des Browsers) ----------
+// Der Browser fragt beim ersten Klick um Erlaubnis. Funktioniert nur auf https-Seiten
+// (z. B. GitHub Pages) und in lokal geöffneten Dateien, nicht in jeder eingebetteten Vorschau.
+const LOC_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>';
+let watchId=null, meDot=null, meAcc=null, firstFix=true, lastUpd=null;
+const LocCtl=L.Control.extend({options:{position:'topleft'},onAdd(){
+  const d=L.DomUtil.create('div','leaflet-bar');
+  const a=L.DomUtil.create('a','locbtn',d); a.href='#'; a.role='button'; a.title='Geotope in meiner Nähe'; a.setAttribute('aria-label','Geotope in meiner Nähe'); a.innerHTML=LOC_SVG;
+  L.DomEvent.on(a,'click',e=>{ L.DomEvent.preventDefault(e); L.DomEvent.stopPropagation(e); watchId===null ? startLoc() : stopLoc(); });
+  this._a=a; return d; }});
+const locCtl=new LocCtl().addTo(map);
+function locMsg(text, ok){ const m=$('#locmsg'); m.hidden=!text; m.textContent=text||''; m.classList.toggle('ok',!!ok); }
+function startLoc(){
+  if(!('geolocation' in navigator)){ locMsg('Dieser Browser kann keinen Standort bestimmen.'); return; }
+  if(window.isSecureContext===false){ locMsg('Der Standort ist nur auf sicheren Seiten (https) verfügbar.'); return; }
+  firstFix=true; locCtl._a.classList.add('wait'); locMsg('Standort wird bestimmt …',true);
+  watchId=navigator.geolocation.watchPosition(onPos,onPosErr,{enableHighAccuracy:true,maximumAge:15000,timeout:20000});
+}
+function stopLoc(){
+  if(watchId!==null) navigator.geolocation.clearWatch(watchId);
+  watchId=null; state.near=null; lastUpd=null;
+  if(meDot){ map.removeLayer(meDot); map.removeLayer(meAcc); meDot=meAcc=null; }
+  locCtl._a.classList.remove('on','wait'); $('#nearRow').hidden=true; locMsg('');
+  update(); if(state.sel) renderDetail(byId.get(state.sel));
+}
+function onPos(p){
+  const me={lat:p.coords.latitude, lon:p.coords.longitude}, acc=p.coords.accuracy||0;
+  locCtl._a.classList.remove('wait'); locCtl._a.classList.add('on');
+  const col=css('--me');
+  if(!meDot){
+    meAcc=L.circle([me.lat,me.lon],{radius:acc,color:col,weight:1,opacity:.5,fillColor:col,fillOpacity:.12,interactive:false}).addTo(map);
+    meDot=L.circleMarker([me.lat,me.lon],{renderer,radius:7,color:css('--halo'),weight:2.5,fillColor:col,fillOpacity:1,interactive:false}).addTo(map);
+  } else { meAcc.setLatLng([me.lat,me.lon]).setRadius(acc); meDot.setLatLng([me.lat,me.lon]); }
+  // Liste nur neu sortieren, wenn man sich merklich bewegt hat (> 100 m), damit sie nicht ständig springt
+  if(!lastUpd || distKm(lastUpd,me)>0.1){
+    lastUpd=me; state.near=me;
+    for(const o of D) o._d=distKm(me,o);
+    $('#nearRow').hidden=false;
+    update(); if(state.sel) renderDetail(byId.get(state.sel));
+  }
+  // grob: Rechteck um alle Geotope plus etwa 5 km Rand
+  const outside = me.lat<50.12 || me.lat>51.70 || me.lon<11.90 || me.lon>15.07;
+  locMsg(outside ? 'Du bist außerhalb Sachsens – die Liste zeigt trotzdem die nächstgelegenen Geotope.' : `Standort gefunden (± ${fmtInt(Math.round(acc))} m). Die Liste ist nach Entfernung sortiert.`, !outside);
+  if(firstFix){ firstFix=false; fitNear(); }
+}
+function onPosErr(e){
+  locCtl._a.classList.remove('wait');
+  const t = e.code===1 ? 'Standortzugriff abgelehnt. Erlaube ihn in den Einstellungen des Browsers für diese Seite und tippe erneut auf den Standort-Knopf.'
+          : e.code===3 ? 'Der Standort konnte nicht rechtzeitig bestimmt werden. Versuch es im Freien noch einmal.'
+          : 'Der Standort ist gerade nicht verfügbar. In manchen eingebetteten Vorschauen ist er gesperrt; auf der Website oder in der lokalen Datei funktioniert er.';
+  if(watchId!==null) navigator.geolocation.clearWatch(watchId);
+  watchId=null; if(!meDot){ locCtl._a.classList.remove('on'); } locMsg(t);
+}
+function fitNear(){
+  if(!state.near) return;
+  if(state.rad){ map.fitBounds(L.latLng(state.near.lat,state.near.lon).toBounds(state.rad*2000),{padding:[10,10]}); }
+  else map.flyTo([state.near.lat,state.near.lon],Math.max(map.getZoom(),11),{duration:0.6});
+}
+
 map.on('zoomend',()=>{ const r=radius(); for(const m of markers.values()) m.setRadius(r); if(selRing) selRing.setRadius(r+6); refreshCities(); toggleTkLabels(); });
 map.on('moveend',()=>{ if(state.view) update(); });
 
