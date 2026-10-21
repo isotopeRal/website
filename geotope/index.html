@@ -684,7 +684,10 @@ function onPos(p){
   locCtl._a.classList.remove('wait'); locCtl._a.classList.add('on');
   const col=css('--me');
   if(!meDot){
-    meAcc=L.circle([me.lat,me.lon],{radius:acc,color:col,weight:1,opacity:.5,fillColor:col,fillOpacity:.12,interactive:false}).addTo(map);
+    // Wichtig: derselbe Canvas-Renderer wie die Geotop-Punkte. Eine eigene Canvas-Ebene darüber
+    // würde alle Mausereignisse abfangen (keine Tooltips, keine Klicks auf Geotope mehr).
+    meAcc=L.circle([me.lat,me.lon],{renderer,radius:acc,color:col,weight:1,opacity:.5,fillColor:col,fillOpacity:.12,interactive:false}).addTo(map);
+    meAcc.bringToBack();
     meDot=L.circleMarker([me.lat,me.lon],{renderer,radius:7,color:css('--halo'),weight:2.5,fillColor:col,fillOpacity:1,interactive:false}).addTo(map);
   } else { meAcc.setLatLng([me.lat,me.lon]).setRadius(acc); meDot.setLatLng([me.lat,me.lon]); }
   // Liste nur neu sortieren, wenn man sich merklich bewegt hat (> 100 m), damit sie nicht ständig springt
