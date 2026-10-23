@@ -256,6 +256,15 @@ dl.kv dd{margin:0;min-width:0;overflow-wrap:anywhere;white-space:pre-line}
 .beckref:last-child{border-bottom:0}
 .beckref i{font-family:var(--f-body);color:var(--muted)}
 .beckref .links{margin:0}
+/* ---------- Historische Führer: Beger 1914 (Quadrat statt Raute) ---------- */
+:root{--c-beger:#5b2a86}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--c-beger:#cfa8f0}}
+:root[data-theme="dark"]{--c-beger:#cfa8f0}
+.bg{display:block;width:10px;height:10px;margin:3px;background:var(--c-beger);box-shadow:0 0 0 1.5px var(--halo);border-radius:1px;box-sizing:border-box}
+.bg.approx{background:var(--halo);box-shadow:none;border:1.6px dashed var(--c-beger)}
+.bg.sel{box-shadow:0 0 0 2px var(--halo),0 0 0 4.5px var(--accent)}
+.legend .sw.bg{border-radius:1px;width:9px;height:9px;margin:0 1px;background:var(--c-beger);box-shadow:0 0 0 1.5px var(--halo)}
+.legend .sw.bg.approx{background:transparent;box-shadow:none;border:1.4px dashed var(--c-beger)}
 dialog.bdlg{border:1px solid var(--line-strong);border-radius:8px;background:var(--panel);color:var(--fg);padding:0;width:min(720px,calc(100vw - 32px));max-height:min(86vh,900px);box-shadow:0 18px 60px rgba(0,0,0,.28)}
 dialog.bdlg::backdrop{background:rgba(12,18,16,.55)}
 .bdlg-in{display:grid;grid-template-rows:auto minmax(0,1fr) auto;max-height:min(86vh,900px)}
@@ -631,6 +640,7 @@ function renderDetail(o){
     ${sec('Literatur', prose(o.lit))}
     ${sec('Katalog', kv([['Geotop-Nr.',o.pos==='est'?'– (ergänzt, nicht im Kataster-Export)':`<span class="mono">${o.id}</span>`,o.pos!=='est'],['Erfasst durch',o.stufa],['Aktualisiert',fmtDate(o.ak)]]))}
     ${beckRefSection(o)}
+    ${begerRefSection(o)}
     <section class="sec"><h3>Extern öffnen</h3><div class="links">
       ${o.url?`<a href="${esc(o.url)}" target="_blank" rel="noopener">LfULG-Steckbrief ↗</a>`:''}
       <a href="https://www.openstreetmap.org/?mlat=${o.lat.toFixed(5)}&mlon=${o.lon.toFixed(5)}#map=16/${o.lat.toFixed(5)}/${o.lon.toFixed(5)}" target="_blank" rel="noopener">OpenStreetMap ↗</a>
@@ -641,18 +651,18 @@ function renderDetail(o){
 }
 function select(id,{fly}){
   const o=byId.get(id); if(!o) return;
-  clearBeckSel(); state.sel=id; renderDetail(o); $('#detail').hidden=false; drawSel();
+  clearBeckSel(); clearBegerSel(); state.sel=id; renderDetail(o); $('#detail').hidden=false; drawSel();
   for(const li of document.querySelectorAll('.item')) li.toggleAttribute('aria-current', +li.dataset.id===id);
   if(fly) map.flyTo([o.lat,o.lon],Math.max(map.getZoom(),13),{duration:matchMedia('(prefers-reduced-motion: reduce)').matches?0:0.8});
   try{ history.replaceState(null,'','#g'+id); }catch(e){}
 }
 function closeDetail(){
-  $('#detail').hidden=true; state.sel=null; drawSel(); clearBeckSel();
+  $('#detail').hidden=true; state.sel=null; drawSel(); clearBeckSel(); clearBegerSel();
   try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
   for(const li of document.querySelectorAll('.item[aria-current]')) li.removeAttribute('aria-current');
 }
 $('#back').addEventListener('click',closeDetail);
-$('#zoomto').addEventListener('click',()=>{ const o=state.beckSel!=null&&beck ? beck.byNr.get(state.beckSel) : byId.get(state.sel); if(o) map.flyTo([o.lat,o.lon],15,{duration:0.8}); });
+$('#zoomto').addEventListener('click',()=>{ const o=state.beckSel!=null&&beck ? beck.byNr.get(state.beckSel) : state.begerSel!=null&&beger ? beger.byNr.get(state.begerSel) : byId.get(state.sel); if(o) map.flyTo([o.lat,o.lon],15,{duration:0.8}); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !$('#detail').hidden && !document.querySelector('dialog[open]')) closeDetail(); });
 
 // ---------- Kartensteuerung: Hintergrund & Färbung ----------
@@ -676,6 +686,9 @@ function renderBaseCtl(){
     <label><input type="checkbox" id="beckT" ${state.beck?'checked':''}> Beck 1897 · Dresdner Elbtal <span class="hint">(194)</span></label>
     ${state.beck&&beckStatus==='ok'?`<select id="beckTour" aria-label="Tour bei Beck"><option value="">alle 14 Touren</option>${Object.entries(beck.touren).map(([k,t])=>`<option value="${k}" ${state.beckTour===k?'selected':''}>${BRN[k]} · ${esc(t)}</option>`).join('')}</select>`:''}
     ${beckStatus==='load'?'<div class="note">Becks Wegweiser wird geladen …</div>':beckStatus==='err'?'<div class="note">Becks Daten konnten nicht geladen werden. Sie müssen im Ordner <span class="mono">beck/</span> neben der Karte liegen.</div>':''}
+    <label><input type="checkbox" id="begerT" ${state.beger?'checked':''}> Beger 1914 · Lausitz <span class="hint">(169)</span></label>
+    ${state.beger&&begerStatus==='ok'?`<select id="begerTour" aria-label="Exkursion bei Beger"><option value="">alle 12 Exkursionen</option>${Object.entries(beger.touren).map(([k,t])=>`<option value="${k}" ${state.begerTour===k?'selected':''}>${GRN[k]} · ${esc(t)}</option>`).join('')}</select>`:''}
+    ${begerStatus==='load'?'<div class="note">Begers Führer wird geladen …</div>':begerStatus==='err'?'<div class="note">Begers Daten konnten nicht geladen werden. Sie müssen im Ordner <span class="mono">beger/</span> neben der Karte liegen.</div>':''}
     </div></details>`;
   $('#baseDet').addEventListener('toggle',e=>{ baseOpen=e.target.open; });
 }
@@ -687,6 +700,9 @@ baseCtl._d.addEventListener('click',e=>{
 });
 baseCtl._d.addEventListener('change',e=>{ if(e.target.id==='gridT'){ state.grid=e.target.checked; drawGrid(); }
   if(e.target.id==='beckT') setBeck(e.target.checked);
+  if(e.target.id==='begerT') setBeger(e.target.checked);
+  if(e.target.id==='begerTour'){ state.begerTour=e.target.value; drawBeger();
+    const v=beger.rows.filter(o=>!state.begerTour||o.tour===+state.begerTour); if(v.length) map.fitBounds(L.latLngBounds(v.map(o=>[o.lat,o.lon])),{padding:[30,30],maxZoom:14}); }
   if(e.target.id==='beckTour'){ state.beckTour=e.target.value; drawBeck();
     const v=beck.rows.filter(o=>!state.beckTour||o.tour===+state.beckTour); if(v.length) map.fitBounds(L.latLngBounds(v.map(o=>[o.lat,o.lon])),{padding:[30,30],maxZoom:14}); }
 });
@@ -710,7 +726,8 @@ function renderLegend(visible){
   legendCtl._d.innerHTML=`<div class="ttl">${state.colorBy==='region'?'Geologische Region':'Geotoptyp'}</div>`+
     rows.map(([l,cv,n])=>`<div class="row"><span class="sw" style="--c:var(${cv})"></span>${esc(l)}<span class="n">${n}</span></div>`).join('')+
     (nApprox?`<div class="row"><span class="sw ring"></span>Lage ungefähr<span class="n">${nApprox}</span></div>`:'')+
-    (state.beck&&beck?`<div class="ttl" style="margin-top:8px">Beck 1897</div><div class="row"><span class="sw bk"></span>Lage aus Geotopkataster<span class="n">${beck.rows.filter(o=>!o.approx).length}</span></div><div class="row"><span class="sw bk approx"></span>Lage geschätzt<span class="n">${beck.rows.filter(o=>o.approx).length}</span></div>`:'');
+    (state.beck&&beck?`<div class="ttl" style="margin-top:8px">Beck 1897</div><div class="row"><span class="sw bk"></span>Lage aus Geotopkataster<span class="n">${beck.rows.filter(o=>!o.approx).length}</span></div><div class="row"><span class="sw bk approx"></span>Lage geschätzt<span class="n">${beck.rows.filter(o=>o.approx).length}</span></div>`:'')+
+    (state.beger&&beger?`<div class="ttl" style="margin-top:8px">Beger 1914</div><div class="row"><span class="sw bg"></span>Lage aus Geotopkataster<span class="n">${beger.rows.filter(o=>!o.approx).length}</span></div><div class="row"><span class="sw bg approx"></span>Lage geschätzt<span class="n">${beger.rows.filter(o=>o.approx).length}</span></div>`:'');
 }
 
 // ---------- Geologie (GK400, LfULG): drei Polygon-Layer zum Ein- und Ausblenden ----------
@@ -999,6 +1016,7 @@ function renderBeckDetail(o){
 }
 async function selectBeck(nr,{fly}){
   try{ await loadBeck(); }catch(e){ return; }
+  clearBegerSel();
   if(!state.beck){ await setBeck(true); }
   const o=beck.byNr.get(nr); if(!o) return;
   // eine offene Geotop-Auswahl schließen, ohne die Detailansicht zu verstecken
@@ -1012,7 +1030,7 @@ function clearBeckSel(){ if(state.beckSel!=null){ state.beckSel=null; drawBeck()
 
 // Pop-up mit Becks Originaltext
 const dlg=$('#beckdlg'), dlgBody=$('#beckdlg-body'), dlgMode=$('#beckdlg-mode');
-let dlgNr=null, dlgFull=false, dlgReturn=null;
+let dlgNr=null, dlgFull=false, dlgReturn=null, dlgGuide='beck';
 function hl(text,anchors){ let h=esc(text); for(const a of anchors){ const ea=esc(a), i=h.indexOf(ea); if(i>=0) h=h.slice(0,i)+'<mark>'+ea+'</mark>'+h.slice(i+ea.length); } return h; }
 function drawText(){
   const o=beck.byNr.get(dlgNr), b=o.beck, anchors=b.teile.filter(x=>x[1]).map(x=>x[0]);
@@ -1030,7 +1048,8 @@ function drawText(){
 function showDlg(ret){ dlgReturn=ret||document.activeElement; if(typeof dlg.showModal==='function'){ if(!dlg.open) dlg.showModal(); } else dlg.setAttribute('open',''); $('#beckdlg-x').focus(); }
 async function openBeckText(nr,full,ret){
   try{ await loadBeck(); }catch(e){ return; }
-  const o=beck.byNr.get(nr); if(!o) return; dlgNr=nr; dlgFull=!!full;
+  const o=beck.byNr.get(nr); if(!o) return; dlgNr=nr; dlgFull=!!full; dlgGuide='beck';
+  $('#beckdlg-note').textContent='Text nach Beck 1897, per Texterkennung erfasst; Lesefehler sind möglich. Rechtschreibung des Originals.';
   $('#beckdlg-eb').textContent=`Beck 1897 · Tour ${BRN[o.tour]} · ${bPgs(o)}`;
   $('#beckdlg-title').textContent=o.beck_1897;
   drawText(); showDlg(ret);
@@ -1046,7 +1065,7 @@ function openBeckAbout(ret){
 function closeDlg(){ if(dlg.open) dlg.close(); else dlg.removeAttribute('open'); }
 dlg.addEventListener('close',()=>{ if(dlgReturn&&dlgReturn.focus) dlgReturn.focus({preventScroll:true}); });
 $('#beckdlg-x').addEventListener('click',closeDlg);
-dlgMode.addEventListener('click',()=>{ dlgFull=!dlgFull; drawText(); });
+dlgMode.addEventListener('click',()=>{ if(dlgGuide==='beger'){ gFull=!gFull; drawBegerText(); } else { dlgFull=!dlgFull; drawText(); } });
 dlg.addEventListener('click',e=>{ if(e.target===dlg) closeDlg(); });
 // Knöpfe in beiden Steckbrief-Arten
 $('#dbody').addEventListener('click',e=>{
@@ -1056,11 +1075,157 @@ $('#dbody').addEventListener('click',e=>{
   else if(t.dataset.bsel) selectBeck(+t.dataset.bsel,{fly:true});
   else if(t.dataset.geo){ clearBeckSel(); select(+t.dataset.geo,{fly:true}); }
   else if(t.id==='beckAbout') openBeckAbout(t);
+  else if(t.dataset.gt) openBegerText(+t.dataset.gt,false,t);
+  else if(t.dataset.gp) openBegerText(+t.dataset.gp,true,t);
+  else if(t.dataset.gsel) selectBeger(+t.dataset.gsel,{fly:true});
+  else if(t.id==='begerAbout') openBegerAbout(t);
 });
 // Abschnitt im Geotop-Steckbrief: was Beck 1897 hier beschrieben hat
 function beckRefSection(o){
   const r=BECK_REF[o.id]; if(!r) return '';
   return `<section class="sec"><h3>Historisch · Beck 1897</h3>${r.map(([nr,t,tour,von,bis])=>`<div class="beckref"><span>Tour ${BRN[tour]} · S. ${von===bis?von:von+'–'+bis}<br><i>${esc(t)}</i></span><span class="links"><button class="btn" type="button" data-bt="${nr}">Text lesen</button><button class="btn" type="button" data-bsel="${nr}">Steckbrief</button></span></div>`).join('')}</section>`;
+}
+
+// ---------- Historische Führer: Beger 1914 (Lausitz) ----------
+// Begers „Geologischer Führer durch die Lausitz“ von 1914 als zweite zuschaltbare Ebene, gebaut wie Beck.
+// Die Daten (169 Lokalitäten mit Lage, Originaltext je Lokalität und die Seiten 147–300 des Führers)
+// liegen in beger/beger1914.json und werden erst beim Einschalten geladen. BEGER_REF verknüpft Geotope
+// mit Begers Einträgen schon vorab. Symbol: Quadrat (Beck: Raute).
+const BEGER_REF={"528":[[1,"Porphyritbruch hinter dem Gasthof Weißig (Mandelporphyrit mit Kalkspat- und Quarztrümern)",1,148,148]],"9006":[[16,"Granitmauer bei Nieder-Poyritz/Pillnitz, 160–170 m über dem Kreidegebiet (Überschiebung)",1,157,157]],"506":[[22,"Auflässiger Bruch hinter der Schule Oberlichtenau",2,163,164]],"638":[[23,"Keulenberg (412,7 m)",2,165,166]],"505":[[25,"Granititbrüche Gräfenhain, erster Jähnichenscher Bruch",2,168,168]],"606":[[32,"Schwepnitz, letzte Ziegelei an der Kamenzer Straße",3,174,175]],"626":[[37,"Kiesgrube an der Straße nach Schönbach",3,181,181]],"456":[[42,"Benachbarter Vogelberg",3,183,186]],"459":[[44,"Eulenberg in Kamenz",4,188,189]],"614":[[54,"Spittelforst",4,195,197]],"879":[[55,"Stadtziegelei Kamenz an der Kamenz–Nebelschützer Straße",4,195,197]],"1165":[[65,"Bruch auf dem Haussteine (1914 in Betrieb)",5,206,206]],"504":[[67,"Schwedenstein mit Turm",5,207,207]],"451":[[68,"Hirschberg",5,208,209],[69,"Hirschberg, unterer Bruch",5,209,210]],"872":[[70,"Tellerweg",5,210,211]],"640":[[72,"Hochstein (Sibyllenstein)",5,211,211]],"1094":[[73,"Untere Brüche am Steinberg (Holzammer & Bauer), oberer Holzammerscher Bruch mit Camptonit",5,213,213]],"1090":[[74,"Großer Granitbruch am „Burgstall“ (Sorbenschanze)",5,213,214]],"849":[[84,"Demitzer Gletscherschliff am Bahnhof",6,226,227]],"765":[[92,"Schloss Stolpen auf dem Basaltkegel",7,234,237]],"1038":[[96,"Neuer Steinbruch im Stockgranit an der Fahrstraße bei der Bockmühle",7,239,239]],"157":[[103,"Czorneboh",8,247,248]],"508":[[106,"Hochstein",8,248,250]],"724":[[107,"Bubenik („kleine Landskrone“)",8,250,251]],"30":[[108,"Löbauer Berg",8,252,254]],"907":[[109,"Plattenbruch am Löbauer Berg",8,252,254]],"855":[[110,"Großes steinernes Meer am Löbauer Berg",8,252,254]],"596":[[112,"Rotstein südl. Station Zoblitz",9,254,256]],"1170":[[115,"„Niedere Brüche“ bei Arnsdorf",9,258,258]],"514":[[117,"Hochsteinbruch bei Königshain (seit einigen Jahren auflässig)",9,259,259]],"859":[[118,"Felskrone des Totensteins",9,259,259]],"1136":[[119,"Felskrone des Fürstensteins",9,259,259]],"468":[[124,"Kalkbrüche von Demisch bei Nieder-Ludwigsdorf",10,265,266]],"862":[[126,"Kunnersdorfer Kalkbrüche",10,266,268]],"485":[[127,"Kunnersdorf, Nordende",10,269,269]],"843":[[131,"Zwei Kiesgruben in fluvioglazialen Schottern am Waldrand, Quarzgang",10,273,273]],"476":[[135,"Klippenzug der Ölsaer Dubrau mit Triangulierungspunkt",10,275,275]],"845":[[136,"Bansberg bei Horscha",10,276,277]],"482":[[137,"Auflässiger und neuer Bruch in quarzitischen Schiefern; Schurf in Kieselschiefer/Hornstein",10,276,277]],"35":[[141,"Neißetal",10,280,282]],"43":[[148,"Töpfer",11,285,286]],"936":[[149,"Böhmische Aussicht, Kleine und Große Felsengasse",11,285,286]],"48":[[150,"Muschelsaal",11,285,286]],"579":[[155,"Jonsdorfer Mühlsteinbrüche",11,287,289]],"23":[[156,"Interessantester auflässiger Mühlsteinbruch",11,287,289]],"45":[[157,"Die „Orgel“ (Kontaktbildung), Albertfelsen, Brummerquelle, Gondelfahrt",11,289,290]],"599":[[158,"Lauschestraße",11,289,290]],"726":[[159,"Lausche",11,290,292]],"57":[[163,"Weißer Stein",12,298,299]],"56":[[165,"Großer Stein bei Josephsdorf (Fernblick, Phonolith auf Basalt)",12,298,299]],"55":[[168,"Alte Halden mit oberoligozänem Polierschiefer (Diatomeen, Blattabdrücke) zwischen Spitzber",12,299,300]]};
+const GRN=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+const BEGER_TYPES={A:'Aufschluss / Steinbruch',B:'Bergbau / Bauwerk / Verkehr',S:'Aussichtspunkt',O:'Ort / Ortslage',G:'Geomorphologie / Glazialform'};
+// Begers „Sektionen“ der Geologischen Spezialkarte sind die heutigen TK25-Blätter
+const GSECTION={4649:'Schwepnitz',4650:'Straßgräbchen',4749:'Königsbrück',4750:'Kamenz',4850:'Pulsnitz',4851:'Bischofswerda',4949:'Pillnitz-Weißig',4950:'Stolpen',4951:'Neustadt-Hohwald',4853:'Czorneboh-Hochkirch',4953:'Löbau-Neusalza',4954:'Löbau-Herrnhut',4854:'Löbau-Reichenbach',5055:'Hirschfelde'};
+state.beger = store.get('geotope.beger')==='1'; state.begerTour=''; state.begerSel=null;
+let beger=null, begerLoading=null, begerStatus='';
+const begerLayer=L.layerGroup(), begerMarkers=new Map();
+map.createPane('beger'); map.getPane('beger').style.zIndex=621;
+
+function loadBeger(){
+  if(beger) return Promise.resolve(beger);
+  if(begerLoading) return begerLoading;
+  begerLoading=(async()=>{
+    let raw;
+    try{ const r=await fetch('beger/beger1914.json'); if(!r.ok) throw new Error(r.status); raw=await r.json(); }
+    catch(e){ // lokal geöffnete Datei (file://): fetch ist gesperrt, ein Skript-Tag geht
+      await loadScript('beger/beger1914.js'); raw=window.BEGER1914; if(!raw) throw new Error('keine Daten'); }
+    raw.byNr=new Map(raw.rows.map(o=>[o.nr,o]));
+    for(const o of raw.rows){ o.tk=tkOf(o.lat,o.lon); o.approx=o.lage!=='LfULG-Geotop'; o.cz=/\(CZ\)/.test(o.heute); }
+    beger=raw; return raw;
+  })();
+  begerLoading.catch(()=>{ begerLoading=null; });
+  return begerLoading;
+}
+const gPgs=o=>o.beger.von===o.beger.bis?'S. '+o.beger.von:'S. '+o.beger.von+'–'+o.beger.bis;
+const gOfficial=o=>o.lfulg_url && o.lfulg_label!=='LfULG-Geotopviewer';
+function begerIcon(o,sel){
+  // Liegt der Punkt auf einem Geotop, sitzt das Quadrat als Abzeichen oben links daneben (Beck rechts), der Geotop-Punkt bleibt klickbar
+  return L.divIcon({className:'',iconSize:[16,16],iconAnchor:o.approx?[8,8]:[17,15],html:`<span class="bg${o.approx?' approx':''}${sel?' sel':''}"></span>`});
+}
+function buildBegerMarkers(){
+  for(const o of beger.rows){
+    const m=L.marker([o.lat,o.lon],{pane:'beger',icon:begerIcon(o,false),keyboard:false,riseOnHover:true});
+    m.bindTooltip(`${esc(o.heute.length>80?o.heute.slice(0,78)+'…':o.heute)}<small>Beger 1914 · Exkursion ${GRN[o.tour]} · ${esc(gPgs(o))}</small>`,{direction:'top',offset:[0,-6]});
+    m.on('click',()=>selectBeger(o.nr,{fly:false}));
+    begerMarkers.set(o.nr,m);
+  }
+}
+function drawBeger(){
+  begerLayer.clearLayers();
+  if(!state.beger||!beger){ map.removeLayer(begerLayer); return; }
+  for(const o of beger.rows) if(!state.begerTour || o.tour===+state.begerTour){ const m=begerMarkers.get(o.nr); m.setIcon(begerIcon(o,o.nr===state.begerSel)); begerLayer.addLayer(m); }
+  begerLayer.addTo(map);
+}
+async function setBeger(on){
+  state.beger=on; store.set('geotope.beger',on?'1':'0');
+  if(!on){ begerStatus=''; drawBeger(); renderBaseCtl(); renderLegend(); return; }
+  begerStatus='load'; renderBaseCtl();
+  try{ await loadBeger(); if(!begerMarkers.size) buildBegerMarkers(); begerStatus='ok'; }
+  catch(e){ begerStatus='err'; }
+  drawBeger(); renderBaseCtl(); renderLegend();
+}
+
+// Steckbrief einer Beger-Lokalität (im selben Panel wie die Geotop-Steckbriefe)
+function renderBegerDetail(o){
+  const anchor=o.beger.teile.filter(x=>x[1]).map(x=>x[0]).join(' ');
+  const teaser=anchor.length>420?anchor.slice(0,410).replace(/\s\S*$/,'')+' …':anchor;
+  const zustand=(o.zustand||'').replace(/;?\s*Lage geschätzt;?\s*/,'').replace(/^–$/,'');
+  const tk=`<span class="mono">${o.tk}</span>${GSECTION[o.tk]?' · Sektion '+esc(GSECTION[o.tk]):''}`;
+  const geo=o.geotop_id && byId.get(+o.geotop_id);
+  $('#dbody').innerHTML=`
+    <div class="dtype" style="--c:var(--c-beger)"><span class="dot"></span>Beger 1914 · ${esc(BEGER_TYPES[o.typ_kurz]||'')}</div>
+    <h2>${esc(o.heute)}</h2>
+    <p class="alt">bei Beger: ${esc(o.beger_1914)}</p>
+    <p class="place">Exkursion ${GRN[o.tour]} · ${esc(beger.touren[o.tour])}</p>
+    ${state.near?`<p class="distline">${fmtKm(distKm(state.near,o))} Luftlinie ${bearingWord(state.near,o)} von dir</p>`:''}
+    ${gOfficial(o)?`<a class="official" href="${esc(o.lfulg_url)}" target="_blank" rel="noopener"><div><b>Offizieller Steckbrief beim LfULG</b><span>geologie.sachsen.de · Fotos, Erläuterung und Anfahrt</span></div><i>↗</i></a>`:''}
+    ${o.approx?'<div class="notice">Die Lage ist aus Begers Wegbeschreibung geschätzt, Genauigkeit etwa ±300 m bis 1 km. Vor Ort prüfen.</div>':''}
+    <section class="sec"><h3>Bei Beger 1914 · ${esc(gPgs(o))}</h3>
+      <p class="prose beckq"><mark>${esc(teaser)}</mark></p>
+      <div class="links"><button class="btn primary" type="button" data-gt="${o.nr}">Text bei Beger lesen</button><button class="btn" type="button" data-gp="${o.nr}">Ganze Seite${o.beger.von===o.beger.bis?'':'n'}</button></div>
+    </section>
+    ${geo?`<section class="sec"><h3>Heute im Geotopkataster</h3><button class="btn" type="button" data-geo="${geo.id}">Geotop ${geo.id}: ${esc(geo.nm)} →</button></section>`:''}
+    ${sec('Heute', kv([['Zustand',zustand],['Geologie (heutige Begriffe)',o.geologie_heute],['Land',o.cz?'Tschechien':'Sachsen']]))}
+    ${sec('Lage', kv([['TK25-Blatt',tk,true],['WGS84',`<span class="mono">${o.lat.toFixed(5)}° N, ${o.lon.toFixed(5)}° E</span>`,true],['Herkunft',o.approx?'geschätzt aus Begers Wegbeschreibung':'Koordinaten aus dem LfULG-Geotopkataster']]))}
+    ${sec('Quelle', `<p class="prose">${esc(beger.quelle)}. Text per Texterkennung erfasst.</p><button class="btn" type="button" id="begerAbout">Begriffe 1914 → heute</button>`)}
+    <section class="sec"><h3>Extern öffnen</h3><div class="links">
+      ${o.lfulg_url?`<a href="${esc(o.lfulg_url)}" target="_blank" rel="noopener">${esc(o.lfulg_label)} ↗</a>`:''}
+      <a href="https://www.openstreetmap.org/?mlat=${o.lat.toFixed(5)}&mlon=${o.lon.toFixed(5)}#map=16/${o.lat.toFixed(5)}/${o.lon.toFixed(5)}" target="_blank" rel="noopener">OpenStreetMap ↗</a>
+      <a href="https://opentopomap.org/#marker=15/${o.lat.toFixed(5)}/${o.lon.toFixed(5)}" target="_blank" rel="noopener">OpenTopoMap ↗</a>
+      ${o.cz?`<a href="https://mapy.cz/turisticka?x=${o.lon.toFixed(5)}&y=${o.lat.toFixed(5)}&z=16" target="_blank" rel="noopener">Mapy.cz ↗</a>`:''}
+      <a href="https://maps.apple.com/?ll=${o.lat.toFixed(6)},${o.lon.toFixed(6)}&q=${encodeURIComponent(o.heute.split(/[,(]/)[0])}&z=16" target="_blank" rel="noopener">Apple Karten ↗</a>
+    </div></section>`;
+  $('#dbody').scrollTop=0;
+}
+async function selectBeger(nr,{fly}){
+  try{ await loadBeger(); }catch(e){ return; }
+  if(!state.beger){ await setBeger(true); }
+  const o=beger.byNr.get(nr); if(!o) return;
+  // eine offene Geotop- oder Beck-Auswahl schließen, ohne die Detailansicht zu verstecken
+  state.sel=null; drawSel(); clearBeckSel();
+  for(const li of document.querySelectorAll('.item[aria-current]')) li.removeAttribute('aria-current');
+  state.begerSel=nr; drawBeger(); renderBegerDetail(o); $('#detail').hidden=false;
+  if(fly) map.flyTo([o.lat,o.lon],Math.max(map.getZoom(),13),{duration:matchMedia('(prefers-reduced-motion: reduce)').matches?0:0.8});
+  try{ history.replaceState(null,'','#bg'+nr); }catch(e){}
+}
+function clearBegerSel(){ if(state.begerSel!=null){ state.begerSel=null; drawBeger(); } }
+
+// Pop-up mit Begers Originaltext (nutzt denselben Dialog wie Beck)
+let gNr=null, gFull=false;
+function drawBegerText(){
+  const o=beger.byNr.get(gNr), b=o.beger, anchors=b.teile.filter(x=>x[1]).map(x=>x[0]);
+  dlgMode.hidden=false; $('#beckdlg-note').hidden=false;
+  const fn=(b.fn||[]).map(f=>`<p class="pgmark">Fußnote</p><p>${esc(f.replace(/^\d\)\s*/,''))}</p>`).join('');
+  if(!gFull){
+    dlgBody.innerHTML='<p>'+b.teile.map(([s,a])=>a?'<mark>'+esc(s)+'</mark>':esc(s)).join(' ')+'</p>'+fn;
+    dlgMode.textContent=b.von===b.bis?'Ganze Seite '+b.von+' lesen':'Ganze Seiten '+b.von+'–'+b.bis+' lesen';
+    dlgBody.scrollTop=0;
+  } else {
+    let html=''; for(let p=b.von;p<=b.bis;p++) html+=`<span class="pgmark">Seite ${p}</span>`+(beger.seiten[p]||'').split('\n\n').map(t=>`<p>${hl(t,anchors)}</p>`).join('');
+    dlgBody.innerHTML=html; dlgMode.textContent='Nur den Abschnitt zeigen';
+    const mk=dlgBody.querySelector('mark'); dlgBody.scrollTop=mk?Math.max(0,mk.offsetTop-dlgBody.offsetTop-60):0;
+  }
+}
+async function openBegerText(nr,full,ret){
+  try{ await loadBeger(); }catch(e){ return; }
+  const o=beger.byNr.get(nr); if(!o) return; gNr=nr; gFull=!!full; dlgGuide='beger';
+  $('#beckdlg-eb').textContent=`Beger 1914 · Exkursion ${GRN[o.tour]} · ${gPgs(o)}`;
+  $('#beckdlg-title').textContent=o.beger_1914;
+  $('#beckdlg-note').textContent='Text nach Beger 1914, per Texterkennung erfasst; Lesefehler sind möglich.';
+  drawBegerText(); showDlg(ret);
+}
+function openBegerAbout(ret){
+  dlgGuide='beger'; dlgMode.hidden=true; $('#beckdlg-note').hidden=true;
+  $('#beckdlg-eb').textContent='Beger 1914 · Geologischer Führer durch die Lausitz';
+  $('#beckdlg-title').textContent='Begers Begriffe, heute gelesen';
+  dlgBody.innerHTML=`<table>${beger.glossar.map(([a,b])=>`<tr><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join('')}</table>
+    <p>52 der 170 Lokalitäten sind einem Geotop im LfULG-Kataster zugeordnet und tragen dessen Koordinaten (gefülltes Quadrat). Alle übrigen Lagen sind aus Begers Wegbeschreibung geschätzt (gestricheltes Quadrat). „Waldecke“ bei Rumburk ließ sich nicht verorten und fehlt auf der Karte. Ausgewertet ist der Exkursionsteil (S. 147–300), nicht der allgemeine Überblick. Offen bleiben das „Kohlhau“ an der Lausche und Rohnau (vermutlich Trzciniec, Polen).</p>`;
+  dlgBody.scrollTop=0; showDlg(ret);
+}
+// Abschnitt im Geotop-Steckbrief: was Beger 1914 hier beschrieben hat
+function begerRefSection(o){
+  const r=BEGER_REF[o.id]; if(!r) return '';
+  return `<section class="sec"><h3>Historisch · Beger 1914</h3>${r.map(([nr,t,tour,von,bis])=>`<div class="beckref"><span>Exkursion ${GRN[tour]} · S. ${von===bis?von:von+'–'+bis}<br><i>${esc(t)}</i></span><span class="links"><button class="btn" type="button" data-gt="${nr}">Text lesen</button><button class="btn" type="button" data-gsel="${nr}">Steckbrief</button></span></div>`).join('')}</section>`;
 }
 
 // ---------- Start ----------
@@ -1074,6 +1239,9 @@ if(h && byId.has(+h[1])) select(+h[1],{fly:true});
 if(state.beck) setBeck(true);
 const hb=/^#b(\d+)$/.exec(location.hash||'');
 if(hb) selectBeck(+hb[1],{fly:true});
+if(state.beger) setBeger(true);
+const hg=/^#bg(\d+)$/.exec(location.hash||'');
+if(hg) selectBeger(+hg[1],{fly:true});
 })();
 </script>
 
