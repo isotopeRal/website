@@ -5,7 +5,7 @@ Gebietsumrisse für die Übersichtskarte der geologischen Führer
 
 Was das Skript macht
 --------------------
-Die Übersichtskarte (geotope/fuehrer/index.html) zeigt für jede Karte
+Die Übersichtskarte (geotope/index.html, die Einstiegsseite) zeigt für jede Karte
 (Sachsen, Kampanien, Pommern …) die Fläche, die ihre Führer abdecken.
 Diese Fläche wird nicht von Hand gezeichnet, sondern aus den Lokalitäten
 selbst berechnet:
@@ -25,10 +25,11 @@ Einen neuen Führer hinzufügen
 -----------------------------
   1. In fuehrer.json einen Eintrag ergänzen (neue Karte oder neuer Führer
      in einer bestehenden Karte) und unter "punkte" angeben, wo dessen
-     Koordinaten liegen (siehe PUNKTQUELLEN unten).
+     Koordinaten liegen (siehe PUNKTQUELLEN unten). Alle Pfade sind relativ
+     zum Ordner geotope/, z. B. "kampanien/index.html".
   2. Hochladen. Der GitHub-Actions-Workflow (deploy.yml) führt dieses
      Skript bei jedem Push selbst aus. Wer die Seite vorher lokal ansehen
-     will, startet es von Hand: python geotope/fuehrer/gebiete.py
+     will, startet es von Hand: python geotope/uebersicht/gebiete.py
   3. Der Ausschnitt der Übersichtskarte passt sich von selbst an.
 
 Benötigt: Python 3.9+ und das Paket shapely (pip install shapely).
@@ -69,8 +70,10 @@ try:
 except ImportError:
     sys.exit("Das Paket shapely fehlt. Bitte installieren: pip install shapely")
 
-# Ordner, in dem dieses Skript liegt – alle Pfade in fuehrer.json beziehen sich darauf
+# Ordner, in dem dieses Skript liegt (geotope/uebersicht/)
 ORDNER = Path(__file__).resolve().parent
+# Alle Pfade in fuehrer.json beziehen sich auf den Ordner geotope/, in dem auch die Übersichtsseite liegt
+BASIS = ORDNER.parent
 REGISTER = ORDNER / "fuehrer.json"
 AUSGABE = ORDNER / "fuehrer.js"
 
@@ -99,7 +102,7 @@ def zeilen_aus_quelle(q: dict):
     if "koordinaten" in q:
         return [{"lon": p[0], "lat": p[1]} for p in q["koordinaten"]]
 
-    pfad = (ORDNER / q["datei"]).resolve()
+    pfad = (BASIS / q["datei"]).resolve()
     if not pfad.exists():
         raise FileNotFoundError(f"Datei nicht gefunden: {pfad}")
     text = pfad.read_text(encoding="utf-8")

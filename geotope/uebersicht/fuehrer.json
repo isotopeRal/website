@@ -1,11 +1,11 @@
 {
-  "_hinweis": "Pflegedatei der Übersichtskarte. gebiete.py berechnet daraus die Umrisse und schreibt fuehrer.js, das die Seite lädt; auf GitHub geschieht das bei jedem Push automatisch. Pfade sind relativ zu diesem Ordner.",
+  "_hinweis": "Pflegedatei der Übersichtskarte (geotope/index.html). gebiete.py berechnet daraus die Umrisse und schreibt fuehrer.js, das die Seite lädt; auf GitHub geschieht das bei jedem Push automatisch. Alle Pfade (seite, link, datei) sind relativ zum Ordner geotope/.",
   "karten": [
     {
       "id": "sachsen",
       "name": "Sachsen",
       "titel": "Geotope in Sachsen",
-      "seite": "../",
+      "seite": "sachsen/",
       "text": "Geotopkataster des LfULG mit Aufschlüssen, Felsen, Findlingen, Quellen und Höhlen; dazu zwei historische Führer als zuschaltbare Ebenen.",
       "fuehrer": [
         {
@@ -14,8 +14,16 @@
           "titel": "Geotope in Sachsen",
           "autor": "LfULG",
           "jahr": null,
-          "link": "../",
-          "punkte": { "datei": "../index.html", "skript": "geodata", "lat": "lat", "lon": "lon", "ohne": { "pos": "tk" } }
+          "link": "sachsen/",
+          "punkte": {
+            "datei": "sachsen/index.html",
+            "skript": "geodata",
+            "lat": "lat",
+            "lon": "lon",
+            "ohne": {
+              "pos": "tk"
+            }
+          }
         },
         {
           "id": "beck",
@@ -23,8 +31,13 @@
           "titel": "Geologischer Wegweiser durch das Dresdner Elbthalgebiet zwischen Meissen und Tetschen",
           "autor": "R. Beck",
           "jahr": 1897,
-          "link": "../?fuehrer=beck",
-          "punkte": { "datei": "../beck/beck1897.json", "liste": "rows", "lat": "lat", "lon": "lon" }
+          "link": "sachsen/?fuehrer=beck",
+          "punkte": {
+            "datei": "sachsen/beck/beck1897.json",
+            "liste": "rows",
+            "lat": "lat",
+            "lon": "lon"
+          }
         },
         {
           "id": "beger",
@@ -32,8 +45,13 @@
           "titel": "Geologischer Führer durch die Lausitz",
           "autor": "P. J. Beger",
           "jahr": 1914,
-          "link": "../?fuehrer=beger",
-          "punkte": { "datei": "../beger/beger1914.json", "liste": "rows", "lat": "lat", "lon": "lon" }
+          "link": "sachsen/?fuehrer=beger",
+          "punkte": {
+            "datei": "sachsen/beger/beger1914.json",
+            "liste": "rows",
+            "lat": "lat",
+            "lon": "lon"
+          }
         }
       ]
     },
@@ -41,7 +59,7 @@
       "id": "kampanien",
       "name": "Kampanien",
       "titel": "Deeckes Kampanien-Führer heute",
-      "seite": "../kampanien/",
+      "seite": "kampanien/",
       "text": "Vesuv, Phlegräische Felder, Ischia, Capri und die Kalkgebirge um Neapel und Salerno.",
       "fuehrer": [
         {
@@ -50,8 +68,14 @@
           "titel": "Geologischer Führer durch Campanien",
           "autor": "W. Deecke",
           "jahr": 1901,
-          "link": "../kampanien/",
-          "punkte": { "datei": "../kampanien/index.html", "skript": "deeckedata", "liste": "rows", "lat": "la", "lon": "lo" }
+          "link": "kampanien/",
+          "punkte": {
+            "datei": "kampanien/index.html",
+            "skript": "deeckedata",
+            "liste": "rows",
+            "lat": "la",
+            "lon": "lo"
+          }
         }
       ]
     },
@@ -59,7 +83,7 @@
       "id": "pommern",
       "name": "Pommern",
       "titel": "Deeckes Pommern-Führer heute",
-      "seite": "../pommern/",
+      "seite": "pommern/",
       "text": "Kreidekliffs, Jura- und Kreideschollen, Tongruben, Endmoränen und Solquellen von Rügen bis Danzig.",
       "fuehrer": [
         {
@@ -68,8 +92,14 @@
           "titel": "Geologischer Führer durch Pommern",
           "autor": "W. Deecke",
           "jahr": 1899,
-          "link": "../pommern/",
-          "punkte": { "datei": "../pommern/index.html", "skript": "deeckedata", "liste": "rows", "lat": "la", "lon": "lo" }
+          "link": "pommern/",
+          "punkte": {
+            "datei": "pommern/index.html",
+            "skript": "deeckedata",
+            "liste": "rows",
+            "lat": "la",
+            "lon": "lo"
+          }
         }
       ]
     }
