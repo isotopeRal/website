@@ -26,8 +26,13 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Pillow installieren
-        run: pip install pillow
+      - name: Pillow und shapely installieren
+        run: pip install pillow shapely
+
+      # Umrisse der Übersichtskarte aus geotope/fuehrer/fuehrer.json neu berechnen,
+      # damit ein neuer Führer nur dort eingetragen werden muss
+      - name: Gebiete der geologischen Führer berechnen
+        run: python geotope/fuehrer/gebiete.py
 
       - name: Website optimieren
         run: python optimize/build.py . _site

@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Übersicht der digitalisierten geologischen Führer und Geotopkarten: Gebiete auf dem Globus anklicken und die Karte öffnen.">
+<title>Geologische Führer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+/* Übersicht aller Führer: gleiche Farben, Schriften und Karteikarten-Optik wie die Einzelkarten (Sachsen, Kampanien, Pommern).
+   Links die Liste, rechts der Globus; auf dem Handy untereinander. */
+:root{
+  --bg:#eef0eb; --panel:#fafbf8; --fg:#1c2320; --muted:#5a645e; --line:#d6dbd2; --line-strong:#b9c0b4;
+  --accent:#1d5a60; --accent-fg:#ffffff; --accent-soft:#dbe9e8; --halo:#ffffff;
+  --sea:#dbe4e2; --land:#f6f5ee; --coast:#aab2a3; --border:#c6ccc0; --grid:#aab2a3; --shade:rgba(20,40,38,.10);
+  --r1:#b0425e; --r2:#2f6fa8; --r3:#c07a12; --r4:#5d8a2e; --r5:#7b4ea0; --r6:#a0522d; --r7:#1f8a85; --r8:#868c85;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --f-ui:"Barlow Semi Condensed",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --panel:#181e1b; --fg:#e4eae5; --muted:#9aa69e; --line:#2a332e; --line-strong:#3c4741;
+  --accent:#73b9be; --accent-fg:#0d1513; --accent-soft:#1d3335; --halo:#0c100e;
+  --sea:#0d1311; --land:#1f2723; --coast:#46524b; --border:#34403a; --grid:#2c3632; --shade:rgba(0,0,0,.35);
+  --r1:#e7809a; --r2:#71aee6; --r3:#e8b257; --r4:#a2cf68; --r5:#bb95e0; --r6:#de9468; --r7:#5fcfc8; --r8:#8f978f;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --panel:#181e1b; --fg:#e4eae5; --muted:#9aa69e; --line:#2a332e; --line-strong:#3c4741;
+  --accent:#73b9be; --accent-fg:#0d1513; --accent-soft:#1d3335; --halo:#0c100e;
+  --sea:#0d1311; --land:#1f2723; --coast:#46524b; --border:#34403a; --grid:#2c3632; --shade:rgba(0,0,0,.35);
+  --r1:#e7809a; --r2:#71aee6; --r3:#e8b257; --r4:#a2cf68; --r5:#bb95e0; --r6:#de9468; --r7:#5fcfc8; --r8:#8f978f;
+  color-scheme:dark}
+
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:14px;overflow:hidden}
+.app{height:100%;display:grid;grid-template-columns:minmax(300px,360px) 1fr}
+.panel{display:flex;flex-direction:column;min-height:0;min-width:0;background:var(--panel);border-right:1px solid var(--line)}
+.panel-scroll{overflow:auto;flex:1;min-height:0}
+.pad{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px}
+
+.head{padding-block:18px 14px;border-bottom:1px solid var(--line)}
+.eyebrow{font:600 11px/1.3 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+a.eyebrow{text-decoration:none;display:inline-block;margin-bottom:10px}
+a.eyebrow:hover{color:var(--accent)}
+h1{font:700 30px/1 var(--f-display);margin:0 0 6px;letter-spacing:-.01em;text-wrap:balance}
+.head p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.4}
+
+.resbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-block:10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:2}
+.count{font:500 12.5px/1.45 var(--f-mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.count b{color:var(--fg);font-weight:500}
+.btn{font:600 13px var(--f-ui);padding:6px 10px;border-radius:6px;border:1px solid var(--line-strong);background:transparent;color:var(--fg);cursor:pointer;text-decoration:none;display:inline-block}
+.btn:hover{background:var(--accent-soft)}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);text-align:center}
+.btn.primary:hover{filter:brightness(1.08)}
+button:focus-visible,a:focus-visible,.area:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.list{list-style:none;margin:0;padding:0}
+.item{display:grid;grid-template-columns:12px 1fr auto;gap:10px;align-items:start;padding:10px 16px 10px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
+.item:hover,.item.hot{background:var(--accent-soft)}
+.item[aria-current="true"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--c)}
+.item .dot{width:11px;height:11px;border-radius:3px;margin-top:4px;background:var(--c)}
+.item .ib{all:unset;cursor:pointer;min-width:0;display:block}
+.item .ib:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.item .t{font:600 16px/1.2 var(--f-display);display:block}
+.item .s{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.35;display:block}
+.item .go{font:600 13px var(--f-ui);color:var(--accent);text-decoration:none;white-space:nowrap;padding:2px 0 2px 6px}
+.item .go:hover{text-decoration:underline}
+.foot{padding-block:14px 22px;color:var(--muted);font-size:12.5px;line-height:1.45}
+.foot p{margin:0 0 6px}
+
+/* ---------- Globus ---------- */
+#map{position:relative;min-width:0;min-height:0;height:100%;overflow:hidden;background:var(--bg);touch-action:none}
+#base,#over{position:absolute;inset:0;width:100%;height:100%;display:block}
+#over{cursor:grab;-webkit-tap-highlight-color:transparent}
+#over:active{cursor:grabbing}
+.area{cursor:pointer;outline:none}
+.area .fill{fill:var(--c);fill-opacity:.34;stroke:var(--c);stroke-width:1.4;stroke-linejoin:round;transition:fill-opacity .15s}
+.area.hot .fill,.area:focus-visible .fill{fill-opacity:.55;stroke-width:2}
+.area.sel .fill{fill-opacity:.6;stroke-width:2.4}
+.area .hit{fill:transparent;stroke:transparent;stroke-width:28;stroke-linejoin:round;pointer-events:all}
+.area .hitc{fill:transparent;pointer-events:all}
+.area .dotm{fill:var(--c);stroke:var(--halo);stroke-width:2;pointer-events:none}
+.lab{font:700 14px/1 var(--f-display);letter-spacing:.03em;fill:var(--fg);paint-order:stroke;stroke:var(--halo);stroke-width:4px;stroke-linejoin:round;pointer-events:none}
+.lab.sel{fill:var(--c)}
+
+.mapbox{background:var(--panel);border:1px solid var(--line-strong);border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.16);color:var(--fg)}
+.ctl{position:absolute;top:12px;right:max(12px,env(safe-area-inset-right,0px));display:grid;overflow:hidden;z-index:3}
+.ctl button{all:unset;width:34px;height:34px;display:grid;place-items:center;cursor:pointer;font:600 18px/1 var(--f-ui);color:var(--fg)}
+.ctl button + button{border-top:1px solid var(--line)}
+.ctl button:hover{background:var(--accent-soft)}
+.ctl button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.ctl svg{width:17px;height:17px}
+.hint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);font:500 12.5px var(--f-ui);color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 12px;white-space:nowrap;pointer-events:none;transition:opacity .4s;z-index:2}
+.hint.off{opacity:0}
+.hint .hs{display:none}
+@media (max-width:560px){.hint .hl{display:none}.hint .hs{display:inline}}
+.msg{position:absolute;inset:auto 16px 16px 16px;padding:10px 12px;font-size:13.5px;line-height:1.4;z-index:4}
+
+/* Steckkarte zum gewählten Gebiet */
+.card{position:absolute;width:300px;max-width:calc(100% - 24px);padding:14px 16px 16px;display:grid;gap:8px;z-index:4;box-sizing:border-box}
+.card.sheet{left:10px!important;right:10px;bottom:10px;top:auto!important;width:auto;max-height:70%;overflow:auto}
+.card .hd{display:flex;justify-content:space-between;align-items:start;gap:8px}
+.card .x{all:unset;cursor:pointer;width:26px;height:26px;display:grid;place-items:center;border-radius:4px;color:var(--muted);font-size:20px;margin:-4px -6px 0 0}
+.card .x:hover{background:var(--accent-soft);color:var(--fg)}
+.card h2{font:700 25px/1.05 var(--f-display);margin:0;display:flex;align-items:center;gap:8px}
+.card h2 i{width:12px;height:12px;border-radius:3px;background:var(--c);flex:none}
+.card .sub{margin:0;font:italic 400 14.5px/1.4 var(--f-body);color:var(--muted)}
+.card .txt{margin:0;font:400 14.5px/1.45 var(--f-body)}
+.card.sheet .txt{display:none}
+.flist{list-style:none;margin:2px 0 0;padding:0;border-top:1px solid var(--line)}
+.flist a{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:7px 2px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--fg)}
+.flist a:hover{background:var(--accent-soft)}
+.flist b{font:600 14.5px/1.2 var(--f-display);color:var(--accent)}
+.flist span{grid-column:1;font-size:12.5px;line-height:1.3;color:var(--muted)}
+.flist em{grid-row:1 / span 2;grid-column:2;align-self:center;font:500 11.5px var(--f-mono);font-style:normal;color:var(--muted);font-variant-numeric:tabular-nums}
+.card .open{margin-top:4px;padding:9px 12px;font-size:14.5px}
+
+@media (max-width:760px){
+  .app{grid-template-columns:1fr;grid-template-rows:58% 42%}
+  #map{grid-row:1}
+  .panel{grid-row:2;border-right:0;border-top:1px solid var(--line)}
+  .pad{padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .head{padding-block:12px 10px}
+  h1{font-size:24px}
+  .head p{display:none}
+  a.eyebrow{margin-bottom:6px}
+  .item{padding-right:max(16px,env(safe-area-inset-right,0px))}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="panel" aria-label="Liste der Karten">
+    <div class="panel-scroll">
+      <header class="head pad">
+        <a class="eyebrow" href="../../">← Zur Website</a>
+        <h1>Geologische Führer</h1>
+        <p>Historische Exkursionsführer und Geotopdaten, Stelle für Stelle auf die Karte gebracht. Klick auf ein farbiges Gebiet zeigt, was es dort gibt, und öffnet die Karte.</p>
+      </header>
+      <div class="resbar pad">
+        <span class="count" id="count"></span>
+        <button class="btn" id="fitAll" type="button">Alle Gebiete</button>
+      </div>
+      <ol class="list" id="list"></ol>
+      <footer class="foot pad" id="foot"></footer>
+    </div>
+  </aside>
+
+  <div id="map" role="region" aria-label="Globus mit den Gebieten der Führer">
+    <canvas id="base" aria-hidden="true"></canvas>
+    <svg id="over" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="ctl mapbox" role="group" aria-label="Kartensteuerung">
+      <button type="button" id="zin" aria-label="Vergrößern">+</button>
+      <button type="button" id="zout" aria-label="Verkleinern">−</button>
+      <button type="button" id="zall" aria-label="Alle Gebiete zeigen" title="Alle Gebiete zeigen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 3.9 5.7 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.7-3.9-9S9.4 5.7 12 3z"/></svg>
+      </button>
+    </div>
+    <div class="hint" id="hint"><span class="hl">Ziehen dreht den Globus · Mausrad oder zwei Finger zoomen</span><span class="hs">Ziehen dreht · zwei Finger zoomen</span></div>
+    <section class="card mapbox" id="card" hidden aria-live="polite"></section>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script src="welt/laender-110m.js"></script>
+<script src="fuehrer.js"></script>
+<script>
+(function(){
+"use strict";
+
+// ---------- Hilfsfunktionen ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => n.toLocaleString('de-DE');
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const RAD = Math.PI/180, DEG = 180/Math.PI;
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+
+// Mindestausschnitt: Auch wenn nur ein kleines Gebiet existiert, zeigt die Karte
+// rundherum mindestens so viele Grad Umgebung (Halbmesser, in der kürzeren Bildseite).
+const MIN_SPAN_ALLE = 7;    // Startansicht / „Alle Gebiete“
+const MIN_SPAN_EINS = 3.5;  // Sprung auf ein einzelnes Gebiet aus der Liste
+const GLOBUS_AB = 75;       // liegen Gebiete weiter als 75° von der Mitte, wird die ganze Erdkugel gezeigt
+
+// ---------- Daten ----------
+if (!window.FUEHRER){ $('#map').insertAdjacentHTML('beforeend','<div class="msg mapbox">Die Datei fuehrer.js fehlt. Bitte gebiete.py ausführen.</div>'); return; }
+const DATA = window.FUEHRER;
+const FARBEN = ['r1','r3','r2','r4','r5','r7','r6','r8'];
+const K = DATA.karten.map((k,i) => ({
+  ...k,
+  farbe: '--' + (k.farbe || FARBEN[i % FARBEN.length]),
+  n: k.fuehrer.reduce((s,f) => s + (f.n || 0), 0),
+  feature: {type:'Feature', properties:{id:k.id}, geometry:k.gebiet}
+}));
+const byId = new Map(K.map(k => [k.id, k]));
+let selId = null, hotId = null;
+
+// ---------- Liste (funktioniert auch ohne Kartenbibliothek) ----------
+const nF = K.reduce((s,k) => s + k.fuehrer.length, 0), nL = K.reduce((s,k) => s + k.n, 0);
+$('#count').innerHTML = `<b>${K.length}</b> ${K.length===1?'Karte':'Karten'} · <b>${nF}</b> Führer · <b>${fmt(nL)}</b> Stellen`;
+$('#list').innerHTML = K.map(k => `
+  <li class="item" data-id="${esc(k.id)}" style="--c:var(${k.farbe})">
+    <span class="dot"></span>
+    <button class="ib" type="button" aria-label="${esc(k.name)} auf dem Globus zeigen">
+      <span class="t">${esc(k.name)}</span>
+      <span class="s">${k.fuehrer.map(f => esc(f.kurz)).join(' · ')} · ${fmt(k.n)} Stellen</span>
+    </button>
+    <a class="go" href="${esc(k.seite)}">Karte →</a>
+  </li>`).join('');
+$('#foot').innerHTML = `<p>Die farbigen Gebiete sind aus den Lokalitäten der Führer berechnet: je Stelle ein Umkreis von einigen Kilometern, kleine Lücken geschlossen.</p>
+  <p>Grundkarte: Natural Earth (world-atlas). Stand ${esc(new Date(DATA.stand).toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'}))}.</p>`;
+
+if (!window.d3 || !window.topojson){
+  $('#map').insertAdjacentHTML('beforeend','<div class="msg mapbox">Der Globus konnte nicht geladen werden (keine Verbindung zum Kartendienst). Die Karten sind über die Liste erreichbar.</div>');
+  $('#hint').hidden = true; return;
+}
+
+// Schwerpunkt je Gebiet; die Beschriftung sitzt über der größten Teilfläche
+for (const k of K){
+  k.centroid = d3.geoCentroid(k.feature);
+  let best = null, ba = -1;
+  for (const poly of k.gebiet.coordinates){ const a = d3.geoArea({type:'Polygon', coordinates:poly}); if (a > ba){ ba = a; best = poly; } }
+  k.main = {type:'Polygon', coordinates:best};
+  k.labelAt = d3.geoCentroid(k.main);
+}
+
+// ---------- Grundkarte ----------
+const prepWelt = t => ({
+  land: topojson.feature(t, t.objects.land),
+  borders: topojson.mesh(t, t.objects.countries, (a,b) => a !== b)
+});
+const welt110 = window.WELT_110M ? prepWelt(window.WELT_110M) : null;
+let welt50 = null;
+// Die genauere Karte (1:50 Mio.) erst nachladen, wenn die Seite steht
+function loadWelt50(){
+  if (welt50 || loadWelt50.started) return; loadWelt50.started = true;
+  const s = document.createElement('script'); s.src = 'welt/laender-50m.js';
+  s.onload = () => { if (window.WELT_50M){ welt50 = prepWelt(window.WELT_50M); delete window.WELT_50M; render(); } };
+  document.head.appendChild(s);
+}
+
+// ---------- Projektion: orthografisch, also der Blick auf eine Kugel ----------
+const mapEl = $('#map'), canvas = $('#base'), ctx = canvas.getContext('2d');
+const svg = d3.select('#over');
+const bg = svg.append('rect').attr('fill','transparent');          // fängt Klicks ins Leere
+const gArea = svg.append('g'), gLab = svg.append('g');
+const proj = d3.geoOrthographic().clipAngle(90).precision(0.35);
+const path = d3.geoPath(proj);
+const SPHERE = {type:'Sphere'};
+let W = 0, H = 0, DPR = 1, busy = false, interacted = false;
+
+const colors = {};
+function readColors(){
+  const cs = getComputedStyle(document.documentElement);
+  for (const n of ['sea','land','coast','border','grid','line-strong','shade','halo']) colors[n] = cs.getPropertyValue('--'+n).trim();
+}
+
+// Gradnetz passend zum Zoom: 10°, 5° oder 1°
+const gratCache = {};
+function graticule(){
+  const half = Math.asin(Math.min(1, Math.min(W,H) / 2 / proj.scale())) * DEG;
+  const step = half > 25 ? 10 : half > 6 ? 5 : 1;
+  return gratCache[step] || (gratCache[step] = d3.geoGraticule().step([step,step]).extentMajor([[-180,-90+1e-6],[180,90-1e-6]])());
+}
+
+function drawBase(){
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.clearRect(0,0,W,H);
+  const p = d3.geoPath(proj, ctx);
+  ctx.beginPath(); p(SPHERE); ctx.fillStyle = colors.sea; ctx.fill();
+  ctx.beginPath(); p(graticule()); ctx.strokeStyle = colors.grid; ctx.lineWidth = .6; ctx.stroke();
+  // Beim Drehen die grobe Karte (flüssig), in Ruhe und nah die feine
+  const w = (!busy && welt50 && proj.scale() > Math.min(W,H) * 0.9) ? welt50 : (welt110 || welt50);
+  if (w){
+    ctx.beginPath(); p(w.land); ctx.fillStyle = colors.land; ctx.fill();
+    ctx.strokeStyle = colors.coast; ctx.lineWidth = .7; ctx.stroke();
+    ctx.beginPath(); p(w.borders); ctx.strokeStyle = colors.border; ctx.lineWidth = .8; ctx.stroke();
+  }
+  // Leichte Schattierung zum Rand hin, damit die Kugel räumlich wirkt
+  const t = proj.translate(), r = proj.scale();
+  if (r < Math.hypot(W,H)){
+    const g = ctx.createRadialGradient(t[0]-r*.3, t[1]-r*.35, r*.1, t[0], t[1], r);
+    g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.75, 'rgba(0,0,0,0)'); g.addColorStop(1, colors.shade);
+    ctx.beginPath(); p(SPHERE); ctx.fillStyle = g; ctx.fill();
+  }
+  ctx.beginPath(); p(SPHERE); ctx.strokeStyle = colors['line-strong']; ctx.lineWidth = 1; ctx.stroke();
+}
+
+// Liegt ein Punkt auf der sichtbaren Seite der Kugel?
+function onFront(lonlat){
+  const r = proj.rotate();
+  return d3.geoDistance(lonlat, [-r[0], -r[1]]) < Math.PI/2 - 0.01;
+}
+
+function drawOver(){
+  bg.attr('width', W).attr('height', H);
+  const g = gArea.selectAll('g.area').data(K, k => k.id).join(enter => {
+    const a = enter.append('g').attr('class','area').attr('tabindex',0).attr('role','button');
+    a.append('path').attr('class','hit');
+    a.append('circle').attr('class','hitc').attr('r',18);
+    a.append('path').attr('class','fill');
+    a.append('circle').attr('class','dotm').attr('r',6.5);
+    a.on('click', (e,k) => { e.stopPropagation(); select(k.id, {from:'map'}); })
+     .on('dblclick', (e,k) => { e.stopPropagation(); location.href = k.seite; })
+     .on('mouseenter', (e,k) => setHot(k.id))
+     .on('mouseleave', () => setHot(null))
+     .on('keydown', (e,k) => { if (e.key==='Enter' || e.key===' '){ e.preventDefault(); select(k.id, {from:'map'}); } });
+    return a;
+  });
+  g.attr('style', k => `--c:var(${k.farbe})`).attr('aria-label', k => `${k.name}: ${k.fuehrer.length} Führer, ${k.n} Stellen`)
+   .classed('sel', k => k.id === selId).classed('hot', k => k.id === hotId);
+
+  g.each(function(k){
+    const d = path(k.feature);
+    const b = d ? path.bounds(k.feature) : null;
+    const vis = onFront(k.labelAt) || !!d;
+    // Sehr klein dargestellte Gebiete (unter etwa 13 × 13 Pixel Fläche) bekommen
+    // zusätzlich einen Punkt, damit sie sichtbar und anklickbar bleiben
+    const px2 = d ? path.area(k.feature) : 0;
+    const small = !b || px2 < 170;
+    const c = onFront(k.labelAt) ? proj(k.labelAt) : (b ? [(b[0][0]+b[1][0])/2, (b[0][1]+b[1][1])/2] : null);
+    const mb = (d && path(k.main)) ? path.bounds(k.main) : b;   // Rahmen der größten Teilfläche, für die Beschriftung
+    k.scr = {vis: vis && !!c, b, mb, c, small, px2};
+    const s = d3.select(this);
+    s.style('display', k.scr.vis ? null : 'none');
+    s.select('.fill').attr('d', d || null);
+    s.select('.hit').attr('d', small ? null : d);
+    s.selectAll('.hitc,.dotm').style('display', small && c ? null : 'none').attr('cx', c ? c[0] : 0).attr('cy', c ? c[1] : 0);
+  });
+
+  // Beschriftungen: über dem Gebiet, sonst darunter; überdecken sich zwei, wird die
+  // des kleineren Gebiets ausgeblendet (die gewählte und die unter der Maus bleiben immer)
+  const inView = c => c[0] > -4 && c[0] < W + 4 && c[1] > -4 && c[1] < H + 4;
+  const shown = K.filter(k => k.scr.vis && inView(k.scr.c))
+    .sort((a,b) => (b.id===selId) - (a.id===selId) || (b.id===hotId) - (a.id===hotId) || b.scr.px2 - a.scr.px2);
+  const lab = gLab.selectAll('text').data(shown, k => k.id).join('text').attr('class','lab').attr('text-anchor','middle');
+  lab.attr('style', k => `--c:var(${k.farbe})`).classed('sel', k => k.id === selId).text(k => k.name);
+  const placed = [];
+  const hits = r => placed.some(q => r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0);
+  lab.each(function(k){
+    const w = this.getComputedTextLength() + 6, sc = k.scr;
+    const x = clamp(sc.c[0], w/2 + 6, W - w/2 - 6);
+    const top = sc.small ? sc.c[1] - 12 : sc.mb[0][1] - 8;
+    const bottom = sc.small ? sc.c[1] + 24 : sc.mb[1][1] + 20;
+    const keep = k.id === selId || k.id === hotId;
+    let ok = null;
+    for (const y of [top, bottom].map(y => clamp(y, 18, H - 8))){
+      const r = {x0:x - w/2, x1:x + w/2, y0:y - 14, y1:y + 3};
+      if (!hits(r)){ ok = [y, r]; break; }
+    }
+    if (!ok && keep){ const y = clamp(top, 18, H - 8); ok = [y, {x0:x - w/2, x1:x + w/2, y0:y - 14, y1:y + 3}]; }
+    d3.select(this).style('display', ok ? null : 'none').attr('x', x).attr('y', ok ? ok[0] : 0);
+    if (ok) placed.push(ok[1]);
+  });
+}
+
+let raf = 0;
+function render(){ if (raf) return; raf = requestAnimationFrame(() => { raf = 0; drawBase(); drawOver(); placeCard(); }); }
+
+// ---------- Ausschnitt berechnen ----------
+// Die Kugel wird so gedreht, dass die Mitte aller Gebiete vorn liegt, und so weit
+// vergrößert, dass alle Gebiete ins Bild passen. Liegen sie über die halbe Erde
+// verstreut, bleibt es bei der ganzen Kugel. Mit nur einem Gebiet wird nicht
+// beliebig weit hineingezoomt (MIN_SPAN), damit die Umgebung erkennbar bleibt.
+// Mitte der kleinsten Kugelkappe, die alle Punkte umschließt: grobe Suche im 5°-Raster,
+// dann schrittweise verfeinert. So liegen auch weltweit verstreute Gebiete möglichst alle vorn.
+function capCenter(pts){
+  if (pts.length === 1) return pts[0];
+  let best = pts[0], bestR = Infinity;
+  const test = c => {
+    let r = 0;
+    for (const p of pts){ r = Math.max(r, d3.geoDistance(c, p)); if (r >= bestR) return; }
+    bestR = r; best = c;
+  };
+  for (let la = -85; la <= 85; la += 5) for (let lo = -180; lo < 180; lo += 5) test([lo, la]);
+  for (let step = 2.5; step > 0.02; step /= 2){
+    const [lo0, la0] = best;
+    for (let i = -2; i <= 2; i++) for (let j = -2; j <= 2; j++) test([lo0 + i*step, clamp(la0 + j*step, -89.9, 89.9)]);
+  }
+  return best;
+}
+// Je Gebiet höchstens 24 Randpunkte – genau genug und schnell
+function outlinePts(list){
+  const out = [];
+  for (const k of list){
+    const ring = k.gebiet.coordinates.flatMap(poly => poly[0]);
+    const step = Math.max(1, Math.floor(ring.length / 24));
+    for (let i = 0; i < ring.length; i += step) out.push(ring[i]);
+  }
+  return out;
+}
+
+// unten (Pixel): Bereich, den eine Steckkarte auf dem Handy verdeckt
+function viewFor(list, minSpan, unten = 0){
+  const pad = Math.max(30, Math.min(W,H) * .09);
+  // Zielrahmen: oben Platz für Beschriftungen, rechts für die Knöpfe, unten für Hinweis bzw. Steckkarte
+  const x0 = pad, y0 = pad + 18, x1 = W - pad - 24, y1 = Math.max(y0 + 60, H - pad - 26 - unten);
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  const pts = outlinePts(list);
+  const c = list.length === 1 ? list[0].centroid : capCenter(pts);
+  let maxAng = 0;
+  for (const v of pts) maxAng = Math.max(maxAng, d3.geoDistance(c, v));
+  const R0 = Math.min(W,H) / 2 - 12;          // Maßstab, bei dem die ganze Kugel ins Bild passt
+  const rot = [-c[0], -c[1], 0];
+  if (maxAng > GLOBUS_AB * RAD) return {rotate:rot, scale:R0, translate:[W/2, H/2]};
+  const p = d3.geoOrthographic().clipAngle(90).rotate(rot)
+    .fitExtent([[x0, y0], [x1, y1]], {type:'FeatureCollection', features:list.map(k => k.feature)});
+  const s0 = p.scale(), t0 = p.translate();
+  const sMax = (Math.min(x1 - x0, y1 - y0) / 2 + pad) / Math.sin(minSpan * RAD);
+  const s = clamp(s0, R0, sMax);
+  if (s === R0 && !unten) return {rotate:rot, scale:R0, translate:[W/2, H/2]};
+  // Beim Begrenzen des Maßstabs bleibt das Gebiet in der Mitte des Zielrahmens
+  const f = s / s0;
+  return {rotate:rot, scale:s, translate:[cx + (t0[0]-cx)*f, cy + (t0[1]-cy)*f]};
+}
+const scaleLimits = () => [Math.min(W,H) / 2 * 0.55, (Math.min(W,H) / 2) / Math.sin(0.5 * RAD)];
+
+function applyView(v){ proj.rotate(v.rotate).scale(v.scale).translate(v.translate); }
+
+// Weicher Flug zu einer Ansicht
+let anim = null;
+function flyTo(v){
+  if (anim) anim.stop();
+  const r0 = proj.rotate(), s0 = proj.scale(), t0 = proj.translate();
+  const r1 = v.rotate.slice();
+  r1[0] = r0[0] + ((((r1[0] - r0[0]) % 360) + 540) % 360 - 180);   // kürzester Weg um die Erde
+  if (reduced()){ applyView(v); render(); return; }
+  const ir = d3.interpolate(r0, r1), it = d3.interpolate(t0, v.translate);
+  busy = true;
+  anim = d3.timer(el => {
+    const t = Math.min(1, el / 800), e = d3.easeCubicInOut(t);
+    proj.rotate(ir(e)).scale(s0 * Math.pow(v.scale / s0, e)).translate(it(e));
+    if (t >= 1){ anim.stop(); anim = null; busy = false; }
+    render();
+  });
+}
+
+// ---------- Bedienung: ziehen = drehen, Mausrad/zwei Finger = zoomen ----------
+function rotateBy(dx, dy){
+  const k = DEG / proj.scale(), r = proj.rotate();
+  proj.rotate([r[0] + dx*k, clamp(r[1] - dy*k, -89, 89), r[2]]);
+}
+function zoomBy(f, pt){
+  const [lo, hi] = scaleLimits(), s = proj.scale(), s1 = clamp(s*f, lo, hi), g = s1/s, t = proj.translate();
+  proj.scale(s1).translate([pt[0] + (t[0]-pt[0])*g, pt[1] + (t[1]-pt[1])*g]);
+}
+let last = d3.zoomIdentity;
+const zoom = d3.zoom().scaleExtent([1e-6, 1e6])
+  .on('start', () => { if (anim){ anim.stop(); anim = null; } busy = true; })
+  .on('zoom', e => {
+    const t = e.transform, dk = t.k / last.k;
+    if (Math.abs(dk - 1) > 1e-6){
+      // Fixpunkt des Zooms aus den beiden Transformationen zurückrechnen (Mauszeiger bzw. Fingermitte)
+      zoomBy(dk, [(t.x - dk*last.x) / (1 - dk), (t.y - dk*last.y) / (1 - dk)]);
+    } else rotateBy(t.x - last.x, t.y - last.y);
+    last = t;
+    if (e.sourceEvent){ interacted = true; $('#hint').classList.add('off'); }
+    render();
+  })
+  .on('end', () => { busy = false; render(); });
+svg.call(zoom).on('dblclick.zoom', null);
+bg.on('click', () => closeCard());
+
+$('#zin').onclick = () => { zoomBy(1.6, [W/2, H/2]); interacted = true; render(); };
+$('#zout').onclick = () => { zoomBy(1/1.6, [W/2, H/2]); interacted = true; render(); };
+$('#zall').onclick = $('#fitAll').onclick = () => { closeCard(); interacted = false; flyTo(viewFor(K, MIN_SPAN_ALLE)); };
+
+// ---------- Auswahl, Hervorhebung und Steckkarte ----------
+function setHot(id){
+  hotId = id;
+  for (const li of document.querySelectorAll('.item')) li.classList.toggle('hot', li.dataset.id === id);
+  gArea.selectAll('g.area').classed('hot', k => k.id === id).filter(k => k.id === id).raise();
+}
+
+function select(id, {from}){
+  const k = byId.get(id); if (!k) return;
+  selId = id;
+  for (const li of document.querySelectorAll('.item')) li.toggleAttribute('aria-current', li.dataset.id === id);
+  const multi = k.fuehrer.length > 1, f0 = k.fuehrer[0];
+  $('#card').setAttribute('style', `--c:var(${k.farbe})`);
+  $('#card').innerHTML = `
+    <div class="hd"><span class="eyebrow">${k.fuehrer.length} Führer · ${fmt(k.n)} Stellen</span><button class="x" type="button" aria-label="Schließen">×</button></div>
+    <h2><i></i>${esc(k.name)}</h2>
+    ${multi ? `<p class="sub">${esc(k.titel)}</p>` : `<p class="sub">${esc(f0.autor)} · ${esc(f0.titel)}${f0.jahr ? ' · '+f0.jahr : ''}</p>`}
+    ${k.text ? `<p class="txt">${esc(k.text)}</p>` : ''}
+    ${multi ? `<ul class="flist">${k.fuehrer.map(f => `<li><a href="${esc(f.link)}"><b>${esc(f.kurz)}</b><span>${esc(f.autor)} · ${esc(f.titel)}</span><em>${fmt(f.n)}</em></a></li>`).join('')}</ul>` : ''}
+    <a class="btn primary open" href="${esc(k.seite)}">Karte öffnen →</a>`;
+  $('#card .x').onclick = closeCard;
+  $('#card').hidden = false;
+  try { history.replaceState(null, '', '#' + id); } catch(e){}
+  // Aus der Liste gewählt und auf dem Globus kaum oder nicht zu sehen? Dann hinfliegen.
+  const sc = k.scr;
+  // Auf dem Handy liegt die Steckkarte als Blatt unten über der Karte: das Gebiet muss darüber liegen
+  $('#card').classList.toggle('sheet', W < 560);
+  const unten = W < 560 ? $('#card').offsetHeight + 16 : 0;
+  const tooSmall = !sc || !sc.vis || !sc.b || sc.px2 < 1600 || sc.b[0][0] < 0 || sc.b[1][0] > W || sc.b[0][1] < 0 || sc.b[1][1] > H;
+  const covered = unten && sc && sc.c && sc.c[1] > H - unten - 10;
+  if ((from === 'list' && tooSmall) || covered){ interacted = true; flyTo(viewFor([k], MIN_SPAN_EINS, unten)); }
+  else render();
+  if (from === 'map') document.querySelector(`.item[data-id="${CSS.escape(id)}"]`)?.scrollIntoView({block:'nearest'});
+}
+function closeCard(){
+  selId = null; $('#card').hidden = true;
+  for (const li of document.querySelectorAll('.item[aria-current]')) li.removeAttribute('aria-current');
+  try { history.replaceState(null, '', location.pathname + location.search); } catch(e){}
+  render();
+}
+// Steckkarte neben das Gebiet setzen (auf schmalen Bildschirmen als Blatt am unteren Rand)
+function placeCard(){
+  const card = $('#card'); if (!selId) return;
+  const k = byId.get(selId), sc = k.scr;
+  if (!sc || !sc.vis){ card.style.visibility = 'hidden'; return; }
+  card.style.visibility = '';
+  if (W < 560){ card.classList.add('sheet'); return; }
+  card.classList.remove('sheet');
+  const cw = card.offsetWidth, ch = card.offsetHeight;
+  const b = (!sc.small && sc.b) ? sc.b : [[sc.c[0]-10, sc.c[1]-10], [sc.c[0]+10, sc.c[1]+10]];
+  let x = b[1][0] + 16;
+  if (x + cw > W - 56) x = b[0][0] - 16 - cw;          // rechts kein Platz (Steuerung): links daneben
+  if (x < 10) x = clamp((b[0][0]+b[1][0])/2 - cw/2, 10, W - cw - 56);
+  const y = clamp((b[0][1]+b[1][1])/2 - ch/2, 10, H - ch - 10);
+  card.style.left = x + 'px'; card.style.top = y + 'px';
+}
+
+for (const li of document.querySelectorAll('.item')){
+  li.querySelector('.ib').onclick = () => select(li.dataset.id, {from:'list'});
+  li.onmouseenter = () => setHot(li.dataset.id);
+  li.onmouseleave = () => setHot(null);
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && selId) closeCard(); });
+
+// ---------- Größe, Farbschema, Start ----------
+function size(){
+  const r = mapEl.getBoundingClientRect(), w0 = W, h0 = H;
+  W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  canvas.width = W * DPR; canvas.height = H * DPR;
+  proj.clipExtent([[-2,-2],[W+2,H+2]]);
+  if (!interacted || !w0) applyView(viewFor(K, MIN_SPAN_ALLE));
+  else { const t = proj.translate(); proj.translate([t[0] + (W-w0)/2, t[1] + (H-h0)/2]); }
+}
+new ResizeObserver(() => { size(); render(); }).observe(mapEl);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); render(); });
+
+readColors(); size(); drawBase(); drawOver();
+const h = decodeURIComponent(location.hash.slice(1));
+if (byId.has(h)) select(h, {from:'list'});
+setTimeout(() => $('#hint').classList.add('off'), 6000);
+(window.requestIdleCallback || (f => setTimeout(f, 300)))(loadWelt50);
+})();
+</script>
+</body>
+</html>

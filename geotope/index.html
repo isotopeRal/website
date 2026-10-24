@@ -283,6 +283,8 @@ dialog.bdlg::backdrop{background:rgba(12,18,16,.55)}
 .bdlg-foot{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:10px 20px;border-top:1px solid var(--line);font-size:12.5px;line-height:1.4;color:var(--muted)}
 .bdlg-foot span{min-width:0;flex:1 1 240px}
 
+.uplink{display:inline-block;margin-bottom:8px;text-decoration:none}
+.uplink:hover{color:var(--accent)}
 </style>
 </head>
 <body>
@@ -292,6 +294,7 @@ dialog.bdlg::backdrop{background:rgba(12,18,16,.55)}
   <aside class="panel" aria-label="Filter und Ergebnisliste">
     <div class="panel-scroll" id="scroller">
       <header class="head pad">
+        <a class="eyebrow uplink" href="fuehrer/">← Alle geologischen Führer</a>
         <h1>Geotope in Sachsen</h1>
         <p id="sub">Aufschlüsse, Felsen, Findlinge, Quellen und Höhlen. Klick auf einen Punkt öffnet den Steckbrief.</p>
       </header>
@@ -932,7 +935,9 @@ const BECK_TYPES={A:'Aufschluss / Steinbruch',B:'Bergbau / Bauwerk / Verkehr',S:
 // Becks „Sectionen“ der Geologischen Specialkarte sind die heutigen TK25-Blätter
 const SECTION={4846:'Meissen',4847:'Kötzschenbroda',4848:'Moritzburg-Klotzsche',4849:'Radeberg',4946:'Tanneberg',4947:'Wilsdruff-Potschappel',4948:'Dresden',4949:'Pillnitz',4950:'Stolpen',5047:'Tharandt',5048:'Kreischa-Hänichen',5049:'Pirna',5050:'Königstein',5051:'Sebnitz-Kirnitzschthal',5147:'Dippoldiswalde',5148:'Glashütte',5149:'Berggiesshübel',5150:'Rosenthal-Hoher Schneeberg',5151:'Grosser Winterberg-Tetschen'};
 const tkOf=(lat,lon)=>{ const r=Math.floor((56-(lat-DLAT))*10+1e-9), c=Math.floor((lon-DLON-5-50/60)*6)+1; return r*100+c; };
-state.beck = store.get('geotope.beck')==='1'; state.beckTour=''; state.beckSel=null;
+// Aus der Übersicht (fuehrer/) kommt ?fuehrer=beck bzw. ?fuehrer=beger: dann genau diesen Führer einblenden
+const FUEHRER_PARAM = new URLSearchParams(location.search).get('fuehrer');
+state.beck = FUEHRER_PARAM ? FUEHRER_PARAM==='beck' : store.get('geotope.beck')==='1'; state.beckTour=''; state.beckSel=null;
 let beck=null, beckLoading=null, beckStatus='';
 const beckLayer=L.layerGroup(), beckMarkers=new Map();
 map.createPane('beck'); map.getPane('beck').style.zIndex=620;
@@ -1096,7 +1101,7 @@ const GRN=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
 const BEGER_TYPES={A:'Aufschluss / Steinbruch',B:'Bergbau / Bauwerk / Verkehr',S:'Aussichtspunkt',O:'Ort / Ortslage',G:'Geomorphologie / Glazialform'};
 // Begers „Sektionen“ der Geologischen Spezialkarte sind die heutigen TK25-Blätter
 const GSECTION={4649:'Schwepnitz',4650:'Straßgräbchen',4749:'Königsbrück',4750:'Kamenz',4850:'Pulsnitz',4851:'Bischofswerda',4949:'Pillnitz-Weißig',4950:'Stolpen',4951:'Neustadt-Hohwald',4853:'Czorneboh-Hochkirch',4953:'Löbau-Neusalza',4954:'Löbau-Herrnhut',4854:'Löbau-Reichenbach',5055:'Hirschfelde'};
-state.beger = store.get('geotope.beger')==='1'; state.begerTour=''; state.begerSel=null;
+state.beger = FUEHRER_PARAM ? FUEHRER_PARAM==='beger' : store.get('geotope.beger')==='1'; state.begerTour=''; state.begerSel=null;
 let beger=null, begerLoading=null, begerStatus='';
 const begerLayer=L.layerGroup(), begerMarkers=new Map();
 map.createPane('beger'); map.getPane('beger').style.zIndex=621;
@@ -1236,10 +1241,12 @@ setBase(state.base);
 update();
 const h=/^#g(\d+)$/.exec(location.hash||'');
 if(h && byId.has(+h[1])) select(+h[1],{fly:true});
-if(state.beck) setBeck(true);
+// Beim Aufruf mit ?fuehrer=… auf das Gebiet dieses Führers zoomen (außer ein Steckbrief ist per #… verlinkt)
+const fitRows=rows=>{ if(rows && !location.hash) map.fitBounds(L.latLngBounds(rows.map(o=>[o.lat,o.lon])),{padding:[24,24]}); };
+if(state.beck) setBeck(true).then(()=>{ if(FUEHRER_PARAM==='beck' && beck) fitRows(beck.rows); });
 const hb=/^#b(\d+)$/.exec(location.hash||'');
 if(hb) selectBeck(+hb[1],{fly:true});
-if(state.beger) setBeger(true);
+if(state.beger) setBeger(true).then(()=>{ if(FUEHRER_PARAM==='beger' && beger) fitRows(beger.rows); });
 const hg=/^#bg(\d+)$/.exec(location.hash||'');
 if(hg) selectBeger(+hg[1],{fly:true});
 })();
