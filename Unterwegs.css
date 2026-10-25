@@ -1,157 +1,111 @@
+ .u-section-1 {
+  background-image: none;
+}
+
 .u-section-1 .u-sheet-1 {
-  min-height: 505px;
+  min-height: 705px;
 }
 
 .u-section-1 .u-text-1 {
-  font-weight: 700;
-  font-size: 3.75rem;
-  text-align: center;
-  margin: 60px auto 0;
+  margin: 20px auto 0;
 }
 
-.u-section-1 .u-countdown-1 {
-  margin: 126px auto 60px;
+.u-section-1 .u-custom-html-1 {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  height: auto;
+  min-height: 605px;
 }
 
-.u-section-1 .u-countdown-item-1 {
-  padding-top: 0;
-}
-
-.u-section-1 .u-countdown-counter-1 {
-  font-size: 4.5rem;
-  letter-spacing: 2px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.u-section-1 .u-countdown-label-1 {
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 1rem;
-}
-
-.u-section-1 .u-countdown-separator-1 {
-  font-size: 4.5rem;
-  letter-spacing: 2px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.u-section-1 .u-countdown-item-2 {
-  padding-top: 0;
-}
-
-.u-section-1 .u-countdown-counter-2 {
-  font-size: 4.5rem;
-  letter-spacing: 2px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.u-section-1 .u-countdown-label-2 {
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 1rem;
-}
-
-.u-section-1 .u-countdown-separator-2 {
-  font-size: 4.5rem;
-  letter-spacing: 2px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.u-section-1 .u-countdown-item-3 {
-  padding-top: 0;
-}
-
-.u-section-1 .u-countdown-counter-3 {
-  font-size: 4.5rem;
-  letter-spacing: 2px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.u-section-1 .u-countdown-label-3 {
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 1rem;
-}
-
-.u-section-1 .u-countdown-separator-3 {
-  font-size: 4.5rem;
-  letter-spacing: 2px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.u-section-1 .u-countdown-item-4 {
-  padding-top: 0;
-}
-
-.u-section-1 .u-countdown-counter-4 {
-  font-size: 4.5rem;
-  letter-spacing: 2px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.u-section-1 .u-countdown-label-4 {
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 1rem;
-}
-
-.u-section-1 .u-countdown-separator-4 {
-  font-size: 4.5rem;
-  letter-spacing: 2px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.u-section-1 .u-countdown-item-5 {
-  padding-top: 0;
-}
-
-.u-section-1 .u-countdown-counter-5 {
-  font-size: 4.5rem;
-  letter-spacing: 2px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.u-section-1 .u-countdown-label-5 {
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 1rem;
-}
-
-.u-section-1 .u-countdown-separator-5 {
-  font-size: 4.5rem;
-  letter-spacing: 2px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.u-section-1 .u-countdown-item-6 {
-  padding-top: 0;
-}
-
-.u-section-1 .u-countdown-counter-6 {
-  font-size: 4.5rem;
-  letter-spacing: 2px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.u-section-1 .u-countdown-label-6 {
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 1rem;
+@media (max-width: 767px) {
+  .u-section-1 .u-text-1 {
+    width: auto;
+  }
 }
 
 @media (max-width: 575px) {
-  .u-section-1 .u-text-1 {
-    font-size: 1.5rem;
+  .u-section-1 .u-sheet-1 {
+    min-height: 476px;
+  }
+
+  .u-section-1 .u-custom-html-1 {
+    min-height: 389px;
+  }
+} .u-section-2 {
+  background-image: none;
+}
+
+.u-section-2 .u-sheet-1 {
+  min-height: 618px;
+}
+
+.u-section-2 .u-video-1 {
+  height: 360px;
+  width: 640px;
+  margin: 60px auto 0;
+}
+
+.u-section-2 .embed-responsive-1 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+}
+
+.u-section-2 .u-text-1 {
+  margin: 30px auto 0;
+}
+
+.u-section-2 .u-text-2 {
+  width: 680px;
+  margin: 20px auto 60px;
+}
+
+@media (max-width: 767px) {
+  .u-section-2 .u-sheet-1 {
+    min-height: 549px;
+  }
+
+  .u-section-2 .u-video-1 {
+    height: 300px;
+    margin-right: initial;
+    margin-left: initial;
+    width: auto;
+  }
+
+  .u-section-2 .u-text-1 {
+    margin-top: 20px;
+    margin-left: 0;
+  }
+
+  .u-section-2 .u-text-2 {
+    width: 540px;
+    margin-bottom: 40px;
+  }
+}
+
+@media (max-width: 575px) {
+  .u-section-2 .u-sheet-1 {
+    min-height: 473px;
+  }
+
+  .u-section-2 .u-video-1 {
+    height: 190px;
+    width: auto;
+    margin-right: initial;
+    margin-left: initial;
+  }
+
+  .u-section-2 .embed-responsive-1 {
+    width: 100%;
+    height: 100%;
+    left: auto;
+    top: auto;
+  }
+
+  .u-section-2 .u-text-2 {
+    width: 340px;
+    margin-bottom: 60px;
   }
 }
