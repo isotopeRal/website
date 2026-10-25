@@ -1,0 +1,27 @@
+<!-- Vorschau „Geologische Führer“ für einen HTML-Block in Nicepage.
+     Alles in diesem Block ist mit "gfv-" benannt, damit es nicht mit den Nicepage-Stilen kollidiert.
+     Das Bild (vorschau.svg) wird bei jedem Push neu gezeichnet – neue Führer erscheinen von selbst. -->
+<style>
+.gfv{display:block;max-width:720px;margin:0 auto;border:1px solid #d6dbd2;border-radius:10px;overflow:hidden;background:#fafbf8;color:#1c2320;text-decoration:none!important;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:box-shadow .2s,transform .2s}
+.gfv:hover{box-shadow:0 6px 22px rgba(0,0,0,.14);transform:translateY(-2px)}
+.gfv:focus-visible{outline:2px solid #1d5a60;outline-offset:3px}
+.gfv img{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#dbe4e2;border:0;margin:0}
+.gfv-txt{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:14px 18px 16px;border-top:1px solid #d6dbd2}
+.gfv-txt span{display:block}
+.gfv-t{font-size:20px;font-weight:700;line-height:1.2;margin:0;color:#1c2320}
+.gfv-s{font-size:14px;line-height:1.45;color:#5a645e;margin-top:3px;max-width:46ch}
+.gfv-btn{flex:none;font-size:15px;font-weight:600;color:#fff;background:#1d5a60;border-radius:6px;padding:9px 14px;white-space:nowrap}
+.gfv:hover .gfv-btn{background:#174a4f}
+@media (prefers-reduced-motion:reduce){.gfv,.gfv:hover{transition:none;transform:none}}
+</style>
+<a class="gfv" href="https://isotoperal.github.io/website/geotope/">
+  <img src="https://isotoperal.github.io/website/geotope/uebersicht/vorschau.svg" width="640" height="360" loading="lazy" decoding="async"
+       alt="Karte mit den Gebieten der digitalisierten geologischen Führer">
+  <span class="gfv-txt">
+    <span>
+      <span class="gfv-t">Geologische Führer</span>
+      <span class="gfv-s">Historische Exkursionsführer und Geotope, Stelle für Stelle auf der Karte – mit dem, was heute davon zu sehen ist.</span>
+    </span>
+    <span class="gfv-btn">Zur Karte →</span>
+  </span>
+</a>
