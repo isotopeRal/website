@@ -246,6 +246,7 @@ def main():
 
     # Zum Schluss die Mini-Vorschau (vorschau.svg) für die Startseite neu zeichnen
     sys.path.insert(0, str(ORDNER))
+    sys.dont_write_bytecode = True  # keinen __pycache__-Ordner im Repo anlegen
     import vorschau
     vorschau.zeichnen()
 
