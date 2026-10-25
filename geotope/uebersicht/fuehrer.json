@@ -102,6 +102,30 @@
           }
         }
       ]
+    },
+    {
+      "id": "alpen",
+      "name": "Alpen",
+      "titel": "Rothpletz' Alpenführer heute",
+      "seite": "alpen/",
+      "text": "Überschiebungen, Fossilfundstellen, Bergstürze und Gletschertöpfe zwischen Bodensee und Engadin: Allgäu, Rätikon, Graubünden und Glarner Alpen.",
+      "fuehrer": [
+        {
+          "id": "rothpletz1902",
+          "kurz": "Rothpletz 1902",
+          "titel": "Geologischer Führer durch die Alpen I. Das Gebiet der zwei grossen rhätischen Ueberschiebungen zwischen Bodensee und dem Engadin",
+          "autor": "A. Rothpletz",
+          "jahr": 1902,
+          "link": "alpen/",
+          "punkte": {
+            "datei": "alpen/index.html",
+            "skript": "rpdata",
+            "liste": "rows",
+            "lat": "la",
+            "lon": "lo"
+          }
+        }
+      ]
     }
   ]
 }
