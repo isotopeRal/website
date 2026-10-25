@@ -30,7 +30,7 @@ jobs:
         run: pip install pillow shapely
 
       # Umrisse der Übersichtskarte aus geotope/uebersicht/fuehrer.json neu berechnen,
-      # damit ein neuer Führer nur dort eingetragen werden muss
+      # und das Vorschaubild vorschau.svg zeichnen – ein neuer Führer muss nur dort eingetragen werden
       - name: Gebiete der geologischen Führer berechnen
         run: python geotope/uebersicht/gebiete.py
 

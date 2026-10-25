@@ -20,6 +20,8 @@ selbst berechnet:
 
 Ergebnis ist die Datei fuehrer.js im selben Ordner. Sie enthält die
 Angaben aus fuehrer.json, die Umrisse und die Zahl der Lokalitäten.
+Anschließend zeichnet vorschau.py daraus das Vorschaubild vorschau.svg
+für den HTML-Block auf der Startseite.
 
 Einen neuen Führer hinzufügen
 -----------------------------
@@ -241,6 +243,12 @@ def main():
         encoding="utf-8",
     )
     print(f"Geschrieben: {AUSGABE.name} ({AUSGABE.stat().st_size / 1024:.1f} KB)")
+
+    # Zum Schluss die Mini-Vorschau (vorschau.svg) für die Startseite neu zeichnen
+    sys.path.insert(0, str(ORDNER))
+    sys.dont_write_bytecode = True  # keinen __pycache__-Ordner im Repo anlegen
+    import vorschau
+    vorschau.zeichnen()
 
 
 if __name__ == "__main__":
