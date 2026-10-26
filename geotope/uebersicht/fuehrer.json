@@ -150,6 +150,30 @@
           }
         }
       ]
+    },
+    {
+      "id": "eifel",
+      "name": "Eifel",
+      "titel": "Eifel-Geologie heute",
+      "seite": "eifel/",
+      "text": "Devonische Richtprofile und Typlokalitäten, Kalkmulden, Maare, Laacher-See-Tephra, Gruben und Museen zwischen Aachen, Trier und Koblenz.",
+      "fuehrer": [
+        {
+          "id": "rath2003",
+          "kurz": "Rath 2003 · Exkursion 2013",
+          "titel": "Die Erforschungsgeschichte der Eifel-Geologie – mit dem Exkursionsheft Eifel 2013 der TU Berlin",
+          "autor": "S. Rath",
+          "jahr": 2003,
+          "link": "eifel/",
+          "punkte": {
+            "datei": "eifel/index.html",
+            "skript": "eifeldata",
+            "liste": "rows",
+            "lat": "la",
+            "lon": "lo"
+          }
+        }
+      ]
     }
   ]
 }
