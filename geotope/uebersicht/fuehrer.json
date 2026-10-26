@@ -126,6 +126,30 @@
           }
         }
       ]
+    },
+    {
+      "id": "mittelgebirge",
+      "name": "Böhmisches Mittelgebirge",
+      "titel": "Hibschs Mittelgebirgsführer heute",
+      "seite": "mittelgebirge/",
+      "text": "Phonolithkuppen, Basaltgänge, Zeolith-Fundorte, Pyropseifen und Braunkohle zwischen Ústí, Bílina, Most und Litoměřice.",
+      "fuehrer": [
+        {
+          "id": "hibsch1930",
+          "kurz": "Hibsch 1930",
+          "titel": "Geologischer Führer durch das Böhmische Mittelgebirge",
+          "autor": "J. E. Hibsch",
+          "jahr": 1930,
+          "link": "mittelgebirge/",
+          "punkte": {
+            "datei": "mittelgebirge/index.html",
+            "skript": "hbdata",
+            "liste": "rows",
+            "lat": "la",
+            "lon": "lo"
+          }
+        }
+      ]
     }
   ]
 }
