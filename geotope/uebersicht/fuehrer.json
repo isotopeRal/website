@@ -198,6 +198,30 @@
           }
         }
       ]
+    },
+    {
+      "id": "suedafrika",
+      "name": "Südafrika (Kaapvaal-Kraton)",
+      "titel": "Südafrika-Geologie heute",
+      "seite": "suedafrika/",
+      "text": "Barberton-Grünsteingürtel, Bushveld-Komplex, Witwatersrand, Vredefort-Impaktstruktur, Tswaing-Krater und Kimberlite – mit den Unterlagen der Südafrika-Exkursionen 2012 und 2014.",
+      "fuehrer": [
+        {
+          "id": "kaapvaal2014",
+          "kurz": "Exkursionen 2012 · 2014",
+          "titel": "Zur Geologie des Kaapvaal-Kratons in Südafrika – Exkursionsführer 2014, Exkursionsberichte 2012 und 2014",
+          "autor": "FU Berlin, HU Berlin, Museum für Naturkunde Berlin, Universität Göttingen",
+          "jahr": 2014,
+          "link": "suedafrika/",
+          "punkte": {
+            "datei": "suedafrika/index.html",
+            "skript": "sadata",
+            "liste": "rows",
+            "lat": "la",
+            "lon": "lo"
+          }
+        }
+      ]
     }
   ]
 }
