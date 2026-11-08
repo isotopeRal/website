@@ -222,6 +222,31 @@
           }
         }
       ]
+    },
+    {
+      "id": "muelhausen",
+      "name": "Sundgau (Mülhausen)",
+      "titel": "Försters Mülhausen-Führer heute",
+      "seite": "muelhausen/",
+      "farbe": "r3",
+      "text": "Melanienkalk, Plattiger Steinmergel mit der Insektenfundstelle von Brunstatt, Meeressand, Sundgauschotter und Löss zwischen Mulhouse, Altkirch und Dannemarie – mit Försters entzerrter geologischer Karte von 1892.",
+      "fuehrer": [
+        {
+          "id": "foerster1892",
+          "kurz": "Förster 1892",
+          "titel": "Geologischer Führer für die Umgebung von Mülhausen i. E.",
+          "autor": "B. Förster",
+          "jahr": 1892,
+          "link": "muelhausen/",
+          "punkte": {
+            "datei": "muelhausen/index.html",
+            "skript": "muedata",
+            "liste": "rows",
+            "lat": "la",
+            "lon": "lo"
+          }
+        }
+      ]
     }
   ]
 }
