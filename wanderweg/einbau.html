@@ -1,0 +1,26 @@
+<!-- Wanderweg: wird von optimize/build.py in aboutMe.html eingesetzt -->
+<section class="ww-wrap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap">
+<link rel="stylesheet" href="wanderweg/wanderweg.css">
+<section class="ww" id="wanderweg" lang="de" aria-label="Mein Werdegang als Wanderkarte">
+  <header class="ww-head">
+    <div>
+      <p class="ww-head__kicker">Wanderkarte · Maßstab 1 : 1 Jahr</p>
+      <h2>Vom Meeresspiegel zum Grundwasserspiegel</h2>
+      <p class="ww-head__sub">Mein Weg von der Marine über die Isotopengeochemie zur Hydrogeologie. Wegweiser und Startnummern lassen sich anklicken.</p>
+    </div>
+    <div class="ww-legend" role="list" aria-label="Legende">
+      <span class="ww-legend__title">Zeichenerklärung</span>
+      <span class="ww-legend__row" role="listitem"><span class="ww-legend__sym ww-legend__sym--beruf"></span>Beruf</span>
+      <span class="ww-legend__row" role="listitem"><span class="ww-legend__sym ww-legend__sym--ausbildung"></span>Ausbildung</span>
+      <span class="ww-legend__row" role="listitem"><span class="ww-legend__sym ww-legend__sym--trail"></span>Wanderweg</span>
+      <span class="ww-legend__row" role="listitem"><span class="ww-legend__sym ww-legend__sym--lauf"></span>Startnummer (Lauf, km)</span>
+    </div>
+  </header>
+  <div class="ww-map" id="ww-map"></div>
+  <dialog class="ww-dlg" id="ww-dlg" aria-label="Details"></dialog>
+</section>
+<script src="wanderweg/stationen.js" defer></script>
+<script src="wanderweg/zeichnungen.js" defer></script>
+<script src="wanderweg/wanderweg.js" defer></script>
+</section>
