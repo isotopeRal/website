@@ -6,6 +6,7 @@ Aufruf:  python3 build.py <quellordner> <zielordner>
 
 Schritte:
   1. Kopiert die Website (ohne .git, .github, .DS_Store, Build-Ordner)
+     und setzt die Karte aus wanderweg/einbau.html in aboutMe.html ein
   2. Bilder: verkleinert (max. 1920 px) und in WebP umgewandelt, Verweise angepasst
      (in HTML, CSS und den JSON-Dateien des Nicepage-Blogs, z. B. blog/blog.json)
   3. Nicepage-Hinweise: entfernt die Fußzeile „created with …“, das Generator-Tag
@@ -463,6 +464,47 @@ def optimize_html(site: Path) -> None:
 
 
 # --------------------------------------------------------------------------- #
+# 0. Wanderweg (interaktive Karriere-Karte) in aboutMe.html einsetzen
+# --------------------------------------------------------------------------- #
+SECTION_RE = re.compile(r"<section\b[^>]*>.*?</section>", re.S | re.I)
+
+
+def einbau_wanderweg(site: Path) -> None:
+    """Setzt wanderweg/einbau.html in aboutMe.html ein.
+
+    Die beiden Nicepage-Abschnitte mit den Tabs (Karriere, Ausbildung) werden dabei
+    durch die Karte ersetzt, ihre Texte stehen in wanderweg/stationen.js.
+    Gibt es die Tabs nicht mehr (in Nicepage gelöscht), kommt die Karte direkt
+    unter den ersten Abschnitt der Seite.
+    """
+    einbau, seite = site / "wanderweg" / "einbau.html", site / "aboutMe.html"
+    if not einbau.exists() or not seite.exists():
+        return
+    block = einbau.read_text(encoding="utf-8")
+    einbau.unlink()                                   # wird nicht veröffentlicht
+    s = seite.read_text(encoding="utf-8")
+    if 'id="wanderweg"' in s:
+        return
+
+    tabs = [m for m in SECTION_RE.finditer(s) if "u-tab-pane" in m.group(0)]
+    if tabs:
+        ids = [i for m in tabs for i in re.findall(r'<section\b[^>]*\bid="([^"]+)"', m.group(0)[:600])]
+        for m in reversed(tabs[1:]):
+            s = s[: m.start()] + s[m.end():]
+        first = tabs[0]
+        s = s[: first.start()] + block + s[first.end():]
+        for i in ids:                                 # Sprungmarken der Seite umleiten
+            s = s.replace(f'#{i}"', '#wanderweg"')
+        print(f"Wanderweg: {len(tabs)} Tab-Abschnitte durch die Karte ersetzt")
+    else:
+        m = SECTION_RE.search(s)
+        pos = m.end() if m else s.lower().find("</body>")
+        s = s[:pos] + "\n" + block + s[pos:]
+        print("Wanderweg: Karte unter dem ersten Abschnitt eingesetzt")
+    seite.write_text(s, encoding="utf-8")
+
+
+# --------------------------------------------------------------------------- #
 def dir_size(p: Path) -> int:
     return sum(f.stat().st_size for f in p.rglob("*") if f.is_file())
 
@@ -473,6 +515,7 @@ def main():
     src, dst = Path(sys.argv[1]).resolve(), Path(sys.argv[2]).resolve()
     copy_site(src, dst)
     start = dir_size(dst)
+    einbau_wanderweg(dst)
     rewrite_image_refs(dst, optimize_images(dst))
     remove_branding(dst)
     optimize_css(dst)

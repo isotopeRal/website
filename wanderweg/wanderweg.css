@@ -1,0 +1,286 @@
+/* Wanderweg – interaktive Karriere-Wanderkarte
+   Layout: senkrechte Wanderkarte, die Jahre laufen von oben (2003) nach unten (heute);
+   die Stationen stehen als Zeichnungen links und rechts am Weg. */
+.ww {
+  /* Farben – passend zum dunklen Grau der Website */
+  --ww-ground: #2c2e2a;      /* Kartengrund */
+  --ww-ink: #ecebe5;         /* Schrift */
+  --ww-muted: #a3a397;       /* Nebenschrift, Kartenbeschriftung */
+  --ww-contour: rgba(201, 164, 112, .26);   /* Höhenlinien, braun wie auf Wanderkarten */
+  --ww-contour-index: rgba(201, 164, 112, .5);
+  --ww-water: #7fb2cc;       /* Uferlinie, Gewässernamen */
+  --ww-trail: #e2675b;       /* Wanderweg, Wegmarke – Rot der Website, etwas kräftiger */
+  --ww-sign: #f1efe7;        /* Schild-Grund (Beruf) */
+  --ww-sign-ink: #22231f;
+  --ww-panel: #1f201d;       /* Detailfenster */
+  /* Schriften */
+  --ww-display: "Roboto", "Segoe UI", system-ui, sans-serif;
+  --ww-body: "Open Sans", "Segoe UI", system-ui, sans-serif;
+  --ww-map: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+
+  color-scheme: dark;
+  position: relative;
+  scroll-margin-top: 120px;   /* Platz für die mitlaufende Kopfzeile der Website */
+  max-width: 1100px;
+  margin: 0 auto;
+  color: var(--ww-ink);
+  font-family: var(--ww-body);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.ww *, .ww *::before, .ww *::after { box-sizing: border-box; }
+.ww [hidden] { display: none !important; }
+
+/* ---------- Kartenkopf ---------- */
+.ww-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px 32px;
+  align-items: end;
+  padding: 26px 26px 22px;
+  background: var(--ww-panel);
+  border: 1px solid rgba(236, 235, 229, .14);
+  border-bottom: 0;
+}
+.ww-head__kicker {
+  margin: 0 0 4px;
+  font-family: var(--ww-map);
+  font-size: 15px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--ww-muted);
+}
+.ww-head h2 {
+  margin: 0;
+  font-family: var(--ww-display);
+  font-weight: 700;
+  color: var(--ww-ink);
+  font-size: clamp(24px, 3.4vw, 36px);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+.ww-head__sub { margin: 8px 0 0; color: var(--ww-muted); max-width: 52ch; }
+.ww-legend {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(236, 235, 229, .2);
+  font-family: var(--ww-map);
+  font-size: 15px;
+  letter-spacing: .02em;
+}
+.ww-legend__title { font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--ww-muted); }
+.ww-legend__row { display: flex; align-items: center; gap: 10px; }
+.ww-legend__sym { flex: none; width: 34px; height: 18px; }
+.ww-legend__sym--beruf { background: var(--ww-sign); border: 2px solid var(--ww-trail); }
+.ww-legend__sym--ausbildung { border: 4px double var(--ww-ink); background: var(--ww-panel); }
+.ww-legend__sym--trail { height: 0; border-top: 3px dashed var(--ww-trail); }
+.ww-legend__sym--lauf { width: 22px; margin: 0 6px; background: #fff; border-radius: 2px; box-shadow: inset 0 3px 0 var(--ww-trail); }
+
+/* ---------- Karte ---------- */
+.ww-map {
+  position: relative;
+  overflow: hidden;
+  background: var(--ww-ground);
+  border: 1px solid rgba(236, 235, 229, .14);
+}
+.ww-map__tint, .ww-map__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ww-map__tint { image-rendering: auto; opacity: .95; }
+.ww-map__svg { overflow: visible; }
+
+.ww-label { font-family: var(--ww-map); fill: var(--ww-muted); font-size: 15px; letter-spacing: .04em; }
+.ww-label--region { font-size: 19px; letter-spacing: .42em; text-transform: uppercase; fill: rgba(236, 235, 229, .5); }
+.ww-label--water { font-style: italic; fill: var(--ww-water); letter-spacing: .12em; }
+.ww-label--peak { font-size: 14px; fill: rgba(236, 235, 229, .72); }
+.ww-label--year { font-size: 14px; fill: rgba(236, 235, 229, .55); font-variant-numeric: tabular-nums; letter-spacing: .06em; }
+.ww-label--town { font-size: 15px; fill: rgba(236, 235, 229, .78); letter-spacing: .08em; text-transform: uppercase; }
+
+/* Stationen: Illustration im Kartenstil mit Schild darunter */
+.ww-st {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: transform .18s ease;
+}
+.ww-st:hover { transform: translateY(-50%) translateY(-4px); }
+.ww-st:focus-visible { outline: 3px solid var(--ww-water); outline-offset: 4px; }
+/* gemeinsame Strichführung aller Zeichnungen */
+.ww-vig {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  fill: #34362f;
+  stroke: var(--ww-ink);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ww-st .ww-vig { background: radial-gradient(ellipse at 50% 58%, rgba(31, 32, 29, .95) 0 48%, rgba(31, 32, 29, 0) 71%); }
+.ww-vig .n { fill: none; }
+.ww-vig .d { fill: none; stroke: rgba(236, 235, 229, .5); stroke-width: 1.1; }
+.ww-vig .a { fill: var(--ww-trail); stroke: none; }
+.ww-vig .w { fill: none; stroke: var(--ww-water); }
+.ww-vig .k { fill: #1b1c19; }
+.ww-vig .p { fill: var(--ww-sign); }
+.ww-vig text { stroke: none; }
+
+.ww-sign {
+  display: grid;
+  gap: 1px;
+  max-width: 100%;
+  padding: 7px 12px 8px;
+  text-align: left;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .35);
+}
+.ww-sign--beruf { background: var(--ww-sign); color: var(--ww-sign-ink); border: 2px solid var(--ww-trail); }
+.ww-sign--ausbildung { background: var(--ww-panel); color: var(--ww-ink); border: 5px double var(--ww-ink); padding: 5px 10px 6px; }
+.ww-sign__years { font-family: var(--ww-map); font-size: 14px; letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+.ww-sign--beruf .ww-sign__years { color: #a8382d; }
+.ww-sign--ausbildung .ww-sign__years { color: var(--ww-muted); }
+.ww-sign__title { font-family: var(--ww-display); font-weight: 700; font-size: 15px; line-height: 1.25; hyphens: auto; overflow-wrap: break-word; }
+.ww-sign__place { font-size: 12.5px; line-height: 1.35; opacity: .75; }
+
+/* Startnummern der Läufe */
+.ww-bib {
+  position: absolute;
+  z-index: 2;
+  width: 26px; height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: inset 0 4px 0 var(--ww-trail), 0 2px 6px rgba(0, 0, 0, .4);
+  font: 600 9px/20px var(--ww-map);
+  color: #222;
+  text-align: center;
+  padding-top: 3px;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+.ww-bib:hover { transform: translate(-50%, -50%) scale(1.15); }
+.ww-bib:focus-visible { outline: 3px solid var(--ww-water); outline-offset: 2px; }
+
+/* "Hier stehe ich heute" */
+.ww-today {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transform: translate(-28px, -50%);
+  font-family: var(--ww-map);
+  font-size: 16px;
+  letter-spacing: .06em;
+}
+.ww-today img {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--ww-trail);
+  box-shadow: 0 0 0 4px rgba(226, 103, 91, .25);
+}
+
+/* ---------- Detailfenster ---------- */
+.ww-dlg {
+  width: min(760px, calc(100vw - 24px));
+  max-height: min(88vh, 900px);
+  padding: 0;
+  border: 1px solid rgba(236, 235, 229, .18);
+  background: var(--ww-panel);
+  color: var(--ww-ink);
+  font-family: var(--ww-body);
+  font-size: 15px;
+  line-height: 1.6;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
+}
+.ww-dlg::backdrop { background: rgba(12, 13, 11, .72); }
+.ww-dlg__bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px 10px 20px;
+  background: var(--ww-panel);
+  border-bottom: 1px solid rgba(236, 235, 229, .12);
+  font-family: var(--ww-map);
+  font-size: 14px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ww-muted);
+}
+.ww-dlg__bar span { flex: 1; min-width: 0; }
+.ww-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px; height: 36px;
+  padding: 0 10px;
+  border: 1px solid rgba(236, 235, 229, .25);
+  background: transparent;
+  color: var(--ww-ink);
+  font: 600 14px var(--ww-body);
+  cursor: pointer;
+}
+.ww-btn:hover { background: rgba(236, 235, 229, .08); }
+.ww-btn:focus-visible { outline: 3px solid var(--ww-water); outline-offset: 2px; }
+.ww-btn[disabled] { opacity: .35; cursor: default; }
+.ww-dlg__body { padding: 20px 24px 28px; }
+.ww-dlg__years { margin: 0; font-family: var(--ww-map); font-size: 16px; letter-spacing: .08em; color: var(--ww-trail); font-variant-numeric: tabular-nums; }
+.ww-dlg h3 { margin: 2px 0 2px; font-weight: 700; font-family: var(--ww-display); font-size: clamp(21px, 3vw, 27px); line-height: 1.2; text-wrap: balance; }
+.ww-dlg__place { margin: 0 0 16px; color: var(--ww-muted); }
+.ww-dlg h4 { margin: 22px 0 6px; font-weight: 700; font-family: var(--ww-display); font-size: 16px; line-height: 1.35; text-wrap: balance; }
+.ww-dlg p { margin: 0 0 10px; max-width: 68ch; }
+.ww-dlg a { color: var(--ww-water); }
+.ww-gallery {
+  display: flex;
+  gap: 10px;
+  margin: 0 -24px 6px;
+  padding: 0 24px 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+.ww-gallery img {
+  flex: none;
+  height: 200px;
+  max-width: 85%;
+  object-fit: cover;
+  scroll-snap-align: start;
+  background: #fff;
+}
+.ww-kurse { margin-top: 18px; border-top: 1px solid rgba(236, 235, 229, .14); padding-top: 10px; }
+.ww-kurse summary { cursor: pointer; font-weight: 600; }
+.ww-kurse ul { columns: 2 220px; column-gap: 28px; margin: 10px 0 0; padding-left: 18px; }
+.ww-kurse li { break-inside: avoid; margin-bottom: 3px; }
+.ww-photo { display: block; width: 100%; max-height: 60vh; object-fit: contain; background: #111; }
+
+@media (max-width: 640px) {
+  .ww-head { grid-template-columns: 1fr; padding: 20px 16px; }
+  .ww-sign { padding: 5px 8px 6px; }
+  .ww-sign--ausbildung { padding: 3px 6px 4px; }
+  .ww-sign__title { font-size: 13px; }
+  .ww-sign__place { display: none; }
+  .ww-sign__years { font-size: 13px; }
+  .ww-label { font-size: 13px; }
+  .ww-label--region { font-size: 15px; letter-spacing: .3em; }
+  .ww-dlg__body { padding: 16px 16px 24px; }
+  .ww-gallery { margin: 0 -16px 6px; padding: 0 16px 8px; }
+  .ww-gallery img { height: 160px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ww-st, .ww-bib { transition: none; }
+}
+
+/* Abschnitt, in dem die Karte auf aboutMe.html steht */
+.ww-wrap { background: #1d1e1b; padding: 48px 16px 64px; }
