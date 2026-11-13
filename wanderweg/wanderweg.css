@@ -192,8 +192,17 @@
 
 /* ---------- Detailfenster ---------- */
 .ww-dlg {
+  /* fest im sichtbaren Fenster, mittig: das Stylesheet der Website setzt Dialoge sonst
+     an den Seitenanfang, und die Seite springt beim Öffnen nach oben */
+  position: fixed !important;
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  overflow: auto;
+  overscroll-behavior: contain;
   width: min(760px, calc(100vw - 24px));
   max-height: min(88vh, 900px);
+  max-height: min(88dvh, 900px);
   padding: 0;
   border: 1px solid rgba(236, 235, 229, .18);
   background: var(--ww-panel);
