@@ -247,6 +247,31 @@
           }
         }
       ]
+    },
+    {
+      "id": "dalmatien",
+      "name": "Dalmatien",
+      "titel": "Schuberts Dalmatien-Führer heute",
+      "seite": "dalmatien/",
+      "farbe": "r7",
+      "text": "Kreidefalten und Nummulitenkalke um Zadar, Šibenik und Split, das Karbon und die Trias der Paklenica im Velebit, die Trias- und Juraprofile bei Knin, Promina-Schichten und die Küste um Dubrovnik – mit allen Abbildungen und Schuberts entzerrtem Übersichtskärtchen von 1909.",
+      "fuehrer": [
+        {
+          "id": "schubert1909",
+          "kurz": "Schubert 1909",
+          "titel": "Geologischer Führer durch Dalmatien",
+          "autor": "R. J. Schubert",
+          "jahr": 1909,
+          "link": "dalmatien/",
+          "punkte": {
+            "datei": "dalmatien/index.html",
+            "skript": "dalmdata",
+            "liste": "rows",
+            "lat": "la",
+            "lon": "lo"
+          }
+        }
+      ]
     }
   ]
 }
