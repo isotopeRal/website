@@ -272,6 +272,34 @@
           }
         }
       ]
+    },
+    {
+      "id": "riesengebirge",
+      "name": "Riesengebirge und Sudeten",
+      "titel": "Gürichs Riesengebirgsführer heute",
+      "seite": "riesengebirge/",
+      "farbe": "r1",
+      "text": "Granitbrüche von Striegau, Gabbro und Serpentin am Zobten, Fossilfundorte im Glatzer Land, die Adersbacher Felsen, Kare und Moränen am Kamm, Erz- und Mineralfundorte und die Basalte zwischen Hirschberg und Lauban – 316 Stellen aus Gürichs 50 Exkursionen von 1900, mit vollständigem Originaltext und Abbildungen. Dazu die heutigen Geotope aus den Registern von PIG-PIB und ČGS.",
+      "fuehrer": [
+        {
+          "id": "guerich1900",
+          "kurz": "Gürich 1900",
+          "titel": "Geologischer Führer in das Riesengebirge",
+          "autor": "G. Gürich",
+          "jahr": 1900,
+          "link": "riesengebirge/",
+          "punkte": {
+            "datei": "riesengebirge/index.html",
+            "skript": "rgdata",
+            "liste": "rows",
+            "lat": "la",
+            "lon": "lo",
+            "ohne": {
+              "e": "REG"
+            }
+          }
+        }
+      ]
     }
   ]
 }
